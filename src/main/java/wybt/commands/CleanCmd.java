@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.commands;
+package wybt.commands;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,10 +20,10 @@ import java.util.List;
 import jbfs.core.Build;
 import jbfs.core.Content;
 import jbfs.util.Trie;
-import wycc.util.Logger;
-import wycli.cfg.Configuration;
-import wycli.cfg.Configuration.Schema;
-import wycli.lang.Command;
+import wybt.cfg.Configuration;
+import wybt.cfg.Configuration.Schema;
+import wybt.lang.Command;
+import wybt.util.Logger;
 
 /**
  * Command for cleaning all generated files from the local directory.
@@ -49,7 +49,7 @@ public class CleanCmd implements Command {
 		}
 
 		@Override
-		public List<wycli.lang.Command.Option.Descriptor> getOptionDescriptors() {
+		public List<wybt.lang.Command.Option.Descriptor> getOptionDescriptors() {
 			return Arrays.asList(Command.OPTION_FLAG("verbose", "generate verbose information", false));
 		}
 

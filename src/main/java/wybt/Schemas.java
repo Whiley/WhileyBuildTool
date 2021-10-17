@@ -11,14 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli;
+package wybt;
 
 import wycc.util.AbstractCompilationUnit;
-import wycli.cfg.Configuration;
 
 import java.util.regex.Pattern;
 
 import jbfs.util.Trie;
+import wybt.cfg.Configuration;
 
 /**
  * Provides a single point of truth for all schemas used within this tool.

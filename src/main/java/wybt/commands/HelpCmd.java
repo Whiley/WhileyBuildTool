@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.commands;
+package wybt.commands;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -19,8 +19,8 @@ import java.util.Collections;
 import java.util.List;
 
 import jbfs.util.Trie;
-import wycli.cfg.Configuration;
-import wycli.lang.Command;
+import wybt.cfg.Configuration;
+import wybt.lang.Command;
 
 public class HelpCmd implements Command {
 

@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.commands;
+package wybt.commands;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,14 +34,14 @@ import jbfs.core.Build.SnapShot;
 import jbfs.util.Pair;
 import jbfs.util.Transactions;
 import jbfs.util.Trie;
+import wybt.cfg.Configuration;
+import wybt.cfg.Configuration.Schema;
+import wybt.lang.Command;
 import wycc.lang.SyntacticHeap;
 import wycc.lang.SyntacticItem;
 import wycc.util.AbstractCompilationUnit;
 import wycc.util.AbstractCompilationUnit.Value;
 import wycc.util.AbstractCompilationUnit.Attribute.Span;
-import wycli.cfg.Configuration;
-import wycli.cfg.Configuration.Schema;
-import wycli.lang.Command;
 
 /**
  *

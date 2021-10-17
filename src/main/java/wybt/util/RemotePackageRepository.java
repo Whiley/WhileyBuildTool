@@ -1,4 +1,4 @@
-package wycli.util;
+package wybt.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,10 +21,10 @@ import org.apache.http.impl.client.HttpClients;
 import jbfs.core.Content;
 import jbfs.util.Trie;
 import jbfs.util.ZipFile;
-import wycli.cfg.Configuration;
-import wycli.lang.Command;
-import wycli.lang.Package;
-import wycli.lang.Semantic;
+import wybt.cfg.Configuration;
+import wybt.lang.Command;
+import wybt.lang.Package;
+import wybt.lang.Semantic;
 
 public class RemotePackageRepository extends LocalPackageRepository {
 

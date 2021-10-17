@@ -16,4 +16,4 @@
  *
  * @author David J. Pearce
  */
-package wycli.lang;
+package wybt.lang;

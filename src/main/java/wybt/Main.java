@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli;
+package wybt;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,19 +25,19 @@ import jbfs.util.DirectoryRoot;
 import jbfs.util.Pair;
 import jbfs.util.Trie;
 import jbfs.util.ZipFile;
+import wybt.cfg.*;
+import wybt.cfg.Configuration.Schema;
+import wybt.commands.*;
+import wybt.lang.Command;
+import wybt.lang.Package;
+import wybt.lang.Plugin;
+import wybt.util.CommandParser;
+import wybt.util.LocalPackageRepository;
+import wybt.util.Logger;
+import wybt.util.RemotePackageRepository;
+import wybt.util.StdPackageResolver;
 import wycc.util.AbstractCompilationUnit.Value;
 import wycc.lang.SyntacticException;
-import wycc.util.Logger;
-import wycli.cfg.*;
-import wycli.cfg.Configuration.Schema;
-import wycli.commands.*;
-import wycli.lang.Command;
-import wycli.lang.Package;
-import wycli.lang.Plugin;
-import wycli.util.LocalPackageRepository;
-import wycli.util.RemotePackageRepository;
-import wycli.util.StdPackageResolver;
-import wycli.util.CommandParser;
 
 
 /**
@@ -230,7 +230,7 @@ public class Main implements Command.Environment {
 		// Add default descriptors
 		menv.getCommandDescriptors().addAll(Arrays.asList(DEFAULT_COMMANDS));
 		// Construct environment and execute arguments
-		Command.Descriptor descriptor = wycli.commands.Root.DESCRIPTOR(menv.getCommandDescriptors());
+		Command.Descriptor descriptor = wybt.commands.Root.DESCRIPTOR(menv.getCommandDescriptors());
 		// Parse the given command-line
 		Command.Template template = new CommandParser(descriptor).parse(args);
 		// Apply verbose setting

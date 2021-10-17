@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.util;
+package wybt.util;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -21,10 +21,10 @@ import java.util.Set;
 import jbfs.core.Content;
 import jbfs.util.Trie;
 import jbfs.util.ZipFile;
-import wycli.cfg.Configuration;
-import wycli.lang.Command;
-import wycli.lang.Package;
-import wycli.lang.Semantic;
+import wybt.cfg.Configuration;
+import wybt.lang.Command;
+import wybt.lang.Package;
+import wybt.lang.Semantic;
 
 /**
  *

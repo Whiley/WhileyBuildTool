@@ -11,19 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.cfg;
+package wybt.cfg;
 
-import static wycli.cfg.ConfigFileLexer.Token.Kind.*;
+import static wybt.cfg.ConfigFileLexer.Token.Kind.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import jbfs.util.Trie;
+import wybt.cfg.ConfigFile.*;
+import wybt.cfg.ConfigFileLexer.Token;
 import wycc.util.AbstractCompilationUnit.Identifier;
-
-import wycli.cfg.ConfigFile.*;
-import wycli.cfg.ConfigFileLexer.Token;
 import wycc.lang.SyntacticItem;
 import wycc.lang.SyntacticException;
 import wycc.util.AbstractCompilationUnit.*;

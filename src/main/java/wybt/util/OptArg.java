@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.util;
+package wybt.util;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
-import wycli.util.OptArg;
+import wybt.util.OptArg;
 
 /**
  * A small utility for parsing command-line options. It helps to take some of

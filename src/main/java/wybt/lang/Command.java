@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wycli.lang;
+package wybt.lang;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,8 +22,8 @@ import jbfs.core.Content;
 import jbfs.core.Build.Meter;
 import jbfs.core.Build.Repository;
 import jbfs.util.Trie;
-import wycc.util.Logger;
-import wycli.cfg.Configuration;
+import wybt.cfg.Configuration;
+import wybt.util.Logger;
 
 /**
  * A command which can be executed (e.g. from the command-line)
