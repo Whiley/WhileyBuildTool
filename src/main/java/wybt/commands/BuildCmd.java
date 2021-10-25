@@ -37,11 +37,7 @@ import jbfs.util.Trie;
 import wybt.cfg.Configuration;
 import wybt.cfg.Configuration.Schema;
 import wybt.lang.Command;
-import wycc.lang.SyntacticHeap;
-import wycc.lang.SyntacticItem;
-import wycc.util.AbstractCompilationUnit;
-import wycc.util.AbstractCompilationUnit.Value;
-import wycc.util.AbstractCompilationUnit.Attribute.Span;
+import wybt.lang.Syntactic;
 
 /**
  *
@@ -172,12 +168,12 @@ public class BuildCmd implements Command {
 		Configuration config = environment.get(path);
 		List<Build.Task> tasks = new ArrayList<>();
 		// Determine active platforms
-		Value.Array platforms = config.get(Value.Array.class, BUILD_PLATFORMS);
+		Object[] platforms = config.get(Object[].class, BUILD_PLATFORMS);
 		// Construct tasks
 		for (Command.Platform p : environment.getCommandPlatforms()) {
 			// TODO: this is not pretty.
-			for (int i = 0; i != platforms.size(); ++i) {
-				Value.UTF8 ith = (Value.UTF8) platforms.get(i);
+			for (int i = 0; i != platforms.length; ++i) {
+				String ith = (String) platforms[i];
 				if (ith.toString().equals(p.getName())) {
 					// Yes, this platform is active
 					tasks.add(p.initialise(path, environment));
@@ -230,7 +226,7 @@ public class BuildCmd implements Command {
 	 */
 	public static void printSyntacticMarkers(PrintStream output, Build.Artifact target) throws IOException {
 		// Extract all syntactic markers from entries in the build graph
-		List<SyntacticItem.Marker> items = extractSyntacticMarkers(target);
+		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
 		// For each marker, print out error messages appropriately
 		for (int i = 0; i != items.size(); ++i) {
 			// Log the error message
@@ -238,9 +234,9 @@ public class BuildCmd implements Command {
 		}
 	}
 
-	public static void printSyntacticMarkers(PrintStream output, SyntacticHeap target, SourceFile... sources) throws IOException {
+	public static void printSyntacticMarkers(PrintStream output, Syntactic.Heap target, SourceFile... sources) throws IOException {
 		// Extract all syntactic markers from entries in the build graph
-		List<SyntacticItem.Marker> items = extractSyntacticMarkers(target);
+		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
 		// For each marker, print out error messages appropriately
 		for (int i = 0; i != items.size(); ++i) {
 			// Log the error message
@@ -253,7 +249,7 @@ public class BuildCmd implements Command {
 	 *
 	 * @param marker
 	 */
-	public static void printSyntacticMarkers(PrintStream output, SyntacticItem.Marker marker, SourceFile... sources) {
+	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker, SourceFile... sources) {
 		// Identify enclosing source file
 		SourceFile source = getSourceEntry(marker.getSource(), sources);
 		String filename = source.getPath().toString() + "." + source.getContentType().getSuffix();
@@ -272,7 +268,7 @@ public class BuildCmd implements Command {
 		}
 	}
 
-	public static void printSyntacticMarkers(PrintStream output, SyntacticItem.Marker marker,
+	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
 			List<? extends Build.Artifact> sources) {
 		// Identify enclosing source file
 		SourceFile source = getSourceEntry(marker.getSource(), sources);
@@ -292,14 +288,14 @@ public class BuildCmd implements Command {
 		}
 	}
 
-	public static List<SyntacticItem.Marker> extractSyntacticMarkers(Build.Artifact... binaries) throws IOException {
-		List<SyntacticItem.Marker> annotated = new ArrayList<>();
+	public static List<Syntactic.Marker> extractSyntacticMarkers(Build.Artifact... binaries) throws IOException {
+		List<Syntactic.Marker> annotated = new ArrayList<>();
 		//
 		for (Artifact b : binaries) {
 			// If the object in question can be decoded as a syntactic heap then we can look
 			// for syntactic messages.
-			if (b instanceof SyntacticHeap) {
-				annotated.addAll(extractSyntacticMarkers((SyntacticHeap) b));
+			if (b instanceof Syntactic.Heap) {
+				annotated.addAll(extractSyntacticMarkers((Syntactic.Heap) b));
 			}
 		}
 		//
@@ -314,10 +310,10 @@ public class BuildCmd implements Command {
 	 * @return
 	 * @throws IOException
 	 */
-	public static List<SyntacticItem.Marker> extractSyntacticMarkers(SyntacticHeap h) throws IOException {
-		List<SyntacticItem.Marker> annotated = new ArrayList<>();
+	public static List<Syntactic.Marker> extractSyntacticMarkers(Syntactic.Heap h) throws IOException {
+		List<Syntactic.Marker> annotated = new ArrayList<>();
 		// FIXME: this just reports all syntactic markers
-		annotated.addAll(h.findAll(SyntacticItem.Marker.class));
+		annotated.addAll(h.findAll(Syntactic.Marker.class));
 		//
 		return annotated;
 	}

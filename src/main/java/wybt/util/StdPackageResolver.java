@@ -30,7 +30,6 @@ import wybt.lang.Command;
 import wybt.lang.Package;
 import wybt.lang.Semantic;
 import wybt.lang.Package.Repository;
-import wycc.util.AbstractCompilationUnit.Value.UTF8;
 
 
 /**
@@ -141,9 +140,9 @@ public class StdPackageResolver implements Package.Resolver {
 			// Get dependency name
 			String name = dep.get(1);
 			// Get version string
-			UTF8 version = cf.get(UTF8.class, dep);
+			String version = cf.get(String.class, dep);
 			//
-			pairs.add(new Pair<>(name, version.toString()));
+			pairs.add(new Pair<>(name, version));
 		}
 		return pairs;
 	}

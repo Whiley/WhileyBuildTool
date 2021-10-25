@@ -13,6 +13,8 @@
 // limitations under the License.
 package wybt.cfg;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import jbfs.util.Trie;
-import wycc.util.AbstractCompilationUnit.Value;
 
 /**
  * A configuration provides a generic key-value store for which the backing is
@@ -418,8 +419,8 @@ public interface Configuration {
 	 *            descriptor for a given schema
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.UTF8> UNBOUND_STRING(Trie key, String description, boolean required) {
-		return new AbstractDescriptor<Value.UTF8>(key, description, Value.UTF8.class, required) {
+	public static KeyValueDescriptor<String> UNBOUND_STRING(Trie key, String description, boolean required) {
+		return new AbstractDescriptor<>(key, description, String.class, required) {
 
 		};
 	}
@@ -436,9 +437,8 @@ public interface Configuration {
 	 *            Default to return in case this attribute is not specified.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.UTF8> UNBOUND_STRING(Trie key, String description,
-			Value.UTF8 defaulT) {
-		return new AbstractDescriptor<Value.UTF8>(key, description, Value.UTF8.class, defaulT) {
+	public static KeyValueDescriptor<String> UNBOUND_STRING(Trie key, String description, String defaulT) {
+		return new AbstractDescriptor<>(key, description, String.class, defaulT) {
 
 		};
 	}
@@ -459,11 +459,11 @@ public interface Configuration {
 	 *            conform.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.UTF8> REGEX_STRING(Trie key, String description, boolean required,
+	public static KeyValueDescriptor<String> REGEX_STRING(Trie key, String description, boolean required,
 			Pattern regex) {
-		return new AbstractDescriptor<Value.UTF8>(key, description, Value.UTF8.class, required) {
+		return new AbstractDescriptor<>(key, description, String.class, required) {
 			@Override
-			public boolean isValid(Value.UTF8 str) {
+			public boolean isValid(String str) {
 				return regex.matcher(str.toString()).matches();
 			}
 		};
@@ -484,12 +484,12 @@ public interface Configuration {
 	 *            conform.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.UTF8> REGEX_STRING(Trie key, String description, Value.UTF8 defaulT,
+	public static KeyValueDescriptor<String> REGEX_STRING(Trie key, String description, String defaulT,
 			Pattern regex) {
-		KeyValueDescriptor<Value.UTF8> desc = new AbstractDescriptor<Value.UTF8>(key, description, Value.UTF8.class,
+		KeyValueDescriptor<String> desc = new AbstractDescriptor<>(key, description, String.class,
 				defaulT) {
 			@Override
-			public boolean isValid(Value.UTF8 str) {
+			public boolean isValid(String str) {
 				return regex.matcher(str.toString()).matches();
 			}
 		};
@@ -512,8 +512,8 @@ public interface Configuration {
 	 *            descriptor for a given schema
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Int> UNBOUND_INTEGER(Trie key, String description, boolean required) {
-		return new AbstractDescriptor<Value.Int>(key, description, Value.Int.class, required) {
+	public static KeyValueDescriptor<BigInteger> UNBOUND_INTEGER(Trie key, String description, boolean required) {
+		return new AbstractDescriptor<>(key, description, BigInteger.class, required) {
 
 		};
 	}
@@ -530,9 +530,9 @@ public interface Configuration {
 	 *            Default to return in case this attribute is not specified.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Int> UNBOUND_INTEGER(Trie key, String description,
-			Value.Int defaulT) {
-		return new AbstractDescriptor<Value.Int>(key, description, Value.Int.class, defaulT) {
+	public static KeyValueDescriptor<BigInteger> UNBOUND_INTEGER(Trie key, String description,
+			BigInteger defaulT) {
+		return new AbstractDescriptor<>(key, description, BigInteger.class, defaulT) {
 
 		};
 	}
@@ -552,12 +552,12 @@ public interface Configuration {
 	 *            No valid value is below this bound.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Int> BOUND_INTEGER(Trie key, String description, boolean required,
+	public static KeyValueDescriptor<BigInteger> BOUND_INTEGER(Trie key, String description, boolean required,
 			final int low) {
-		return new AbstractDescriptor<Value.Int>(key, description, Value.Int.class, required) {
+		return new AbstractDescriptor<>(key, description, BigInteger.class, required) {
 			@Override
-			public boolean isValid(Value.Int value) {
-				int v = value.get().intValue();
+			public boolean isValid(BigInteger value) {
+				int v = value.intValue();
 				return v >= low;
 			}
 		};
@@ -577,13 +577,13 @@ public interface Configuration {
 	 *            No valid value is below this bound.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Int> BOUND_INTEGER(Trie key, String description, Value.Int defaulT,
+	public static KeyValueDescriptor<BigInteger> BOUND_INTEGER(Trie key, String description, BigInteger defaulT,
 			final int low) {
-		KeyValueDescriptor<Value.Int> desc = new AbstractDescriptor<Value.Int>(key, description, Value.Int.class,
+		KeyValueDescriptor<BigInteger> desc = new AbstractDescriptor<>(key, description, BigInteger.class,
 				defaulT) {
 			@Override
-			public boolean isValid(Value.Int value) {
-				int v = value.get().intValue();
+			public boolean isValid(BigInteger value) {
+				int v = value.intValue();
 				return v >= low;
 			}
 		};
@@ -611,12 +611,12 @@ public interface Configuration {
 	 *            No valid value is above this bound.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Int> BOUND_INTEGER(Trie key, String description, Value.Int defaulT,
+	public static KeyValueDescriptor<BigInteger> BOUND_INTEGER(Trie key, String description, BigInteger defaulT,
 			final int low, final int high) {
-		return new AbstractDescriptor<Value.Int>(key, description, Value.Int.class, defaulT) {
+		return new AbstractDescriptor<>(key, description, BigInteger.class, defaulT) {
 			@Override
-			public boolean isValid(Value.Int value) {
-				int v = value.get().intValue();
+			public boolean isValid(BigInteger value) {
+				int v = value.intValue();
 				return v >= low && v <= high;
 			}
 		};
@@ -624,7 +624,6 @@ public interface Configuration {
 
 	/**
 	 * Returns a decimal key-value descriptor which ensures the given value is
-	 * greater-or-equal to a given lower bound and less-or-equal to a given upper
 	 * bound.
 	 *
 	 * @param key         Identifies keys associated with this descriptor.
@@ -635,12 +634,12 @@ public interface Configuration {
 	 * @param high        No valid value is above this bound.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Decimal> BOUND_DECIMAL(Trie key, String description, Value.Decimal defaulT,
+	public static KeyValueDescriptor<BigDecimal> BOUND_DECIMAL(Trie key, String description, BigDecimal defaulT,
 			final double low, final double high) {
-		return new AbstractDescriptor<Value.Decimal>(key, description, Value.Decimal.class, defaulT) {
+		return new AbstractDescriptor<>(key, description, BigDecimal.class, defaulT) {
 			@Override
-			public boolean isValid(Value.Decimal value) {
-				int v = value.get().intValue();
+			public boolean isValid(BigDecimal value) {
+				int v = value.intValue();
 				return v >= low && v <= high;
 			}
 		};
@@ -659,9 +658,9 @@ public interface Configuration {
 	 *            descriptor for a given schema
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Bool> UNBOUND_BOOLEAN(Trie key, String description,
+	public static KeyValueDescriptor<Boolean> UNBOUND_BOOLEAN(Trie key, String description,
 			boolean required) {
-		return new AbstractDescriptor<Value.Bool>(key, description, Value.Bool.class, required) {
+		return new AbstractDescriptor<>(key, description, Boolean.class, required) {
 
 		};
 	}
@@ -678,9 +677,9 @@ public interface Configuration {
 	 *            Default to return in case this attribute is not specified.
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Bool> UNBOUND_BOOLEAN(Trie key, String description,
-			Value.Bool defaulT) {
-		return new AbstractDescriptor<Value.Bool>(key, description, Value.Bool.class, defaulT) {
+	public static KeyValueDescriptor<Boolean> UNBOUND_BOOLEAN(Trie key, String description,
+			Boolean defaulT) {
+		return new AbstractDescriptor<>(key, description, Boolean.class, defaulT) {
 
 		};
 	}
@@ -694,13 +693,13 @@ public interface Configuration {
 	 * @param required
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Array> UNBOUND_STRING_ARRAY(Trie key, String description,
+	public static KeyValueDescriptor<Object[]> UNBOUND_STRING_ARRAY(Trie key, String description,
 			boolean required) {
-		return new AbstractDescriptor<Value.Array>(key, description, Value.Array.class, required) {
+		return new AbstractDescriptor<>(key, description, Object[].class, required) {
 			@Override
-			public boolean isValid(Value.Array value) {
-				for (int i = 0; i != value.size(); ++i) {
-					if (!(value.get(i) instanceof Value.UTF8)) {
+			public boolean isValid(Object[] value) {
+				for (int i = 0; i != value.length; ++i) {
+					if (!(value[i] instanceof String)) {
 						return false;
 					}
 				}
@@ -718,14 +717,14 @@ public interface Configuration {
 	 * @param required
 	 * @return
 	 */
-	public static KeyValueDescriptor<Value.Array> UNBOUND_STRING_ARRAY(Trie key, String description,
-			Value.Array defaulT) {
-		AbstractDescriptor<Value.Array> desc = new AbstractDescriptor<Value.Array>(key, description, Value.Array.class,
+	public static KeyValueDescriptor<Object[]> UNBOUND_STRING_ARRAY(Trie key, String description,
+			Object[] defaulT) {
+		AbstractDescriptor<Object[]> desc = new AbstractDescriptor<>(key, description, Object[].class,
 				defaulT) {
 			@Override
-			public boolean isValid(Value.Array value) {
-				for (int i = 0; i != value.size(); ++i) {
-					if (!(value.get(i) instanceof Value.UTF8)) {
+			public boolean isValid(Object[] value) {
+				for (int i = 0; i != value.length; ++i) {
+					if (!(value[i] instanceof String)) {
 						return false;
 					}
 				}
@@ -748,14 +747,13 @@ public interface Configuration {
 	 * @param required
 	 * @return
 	 */
-	public static <T extends Value> KeyValueDescriptor<Value.Array> UNBOUND_ARRAY(Trie key, String description,
-			Class<T> kind, Value.Array defaulT) {
-		AbstractDescriptor<Value.Array> desc = new AbstractDescriptor<Value.Array>(key, description, Value.Array.class,
-				defaulT) {
+	public static <T> KeyValueDescriptor<Object[]> UNBOUND_ARRAY(Trie key, String description, Class<T> kind,
+			Object[] defaulT) {
+		AbstractDescriptor<Object[]> desc = new AbstractDescriptor<>(key, description, Object[].class, defaulT) {
 			@Override
-			public boolean isValid(Value.Array value) {
-				for (int i = 0; i != value.size(); ++i) {
-					if (!(kind.isInstance(value.get(i)))) {
+			public boolean isValid(Object[] value) {
+				for (int i = 0; i != value.length; ++i) {
+					if (!(kind.isInstance(value[i]))) {
 						return false;
 					}
 				}
@@ -768,7 +766,7 @@ public interface Configuration {
 		return desc;
 	}
 
-	public static <T extends Value> void checkDefaultValue(KeyValueDescriptor<T> desc, T defaulT) {
+	public static <T> void checkDefaultValue(KeyValueDescriptor<T> desc, T defaulT) {
 		if (!desc.isValid(defaulT)) {
 			throw new IllegalArgumentException("Invalid default value");
 		}

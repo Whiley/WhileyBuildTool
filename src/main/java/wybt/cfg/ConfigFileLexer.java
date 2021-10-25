@@ -17,8 +17,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import wycc.lang.SyntacticException;
-
 /**
  * Split a configuration file into a list of tokens. These tokens can then be fed into
  * the parser in order to generate an Abstract Syntax Tree (AST).
@@ -249,8 +247,8 @@ public class ConfigFileLexer {
 	 *            --- index position to associate the error with.
 	 */
 	private void syntaxError(String msg, int index) {
-		// FIXME: this is clearly not a sensible approach
-		throw new SyntacticException(msg, null, new ConfigFile.Attribute.Span(null, index, index));
+		// FIXME: need to sort this.
+		throw new RuntimeException(msg);
 	}
 
 	static final char[] opStarts = { '[', ']', '=', '.', ',' };

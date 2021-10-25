@@ -22,10 +22,6 @@ import java.util.List;
 import jbfs.util.Trie;
 import wybt.cfg.ConfigFile.*;
 import wybt.cfg.ConfigFileLexer.Token;
-import wycc.util.AbstractCompilationUnit.Identifier;
-import wycc.lang.SyntacticItem;
-import wycc.lang.SyntacticException;
-import wycc.util.AbstractCompilationUnit.*;
 
 /**
  * Convert a list of tokens into an Abstract Syntax Tree (AST) representing the
@@ -64,7 +60,7 @@ public class ConfigFileParser {
 			skipWhiteSpace();
 		}
 		// FIXME: why do we need this?
-		file.setDeclarations(new Tuple<>(declarations));
+		file.setDeclarations(new ArrayList<>(declarations));
 		return file;
 	}
 
@@ -72,7 +68,7 @@ public class ConfigFileParser {
 		int start = index;
 		List<KeyValuePair> declarations = new ArrayList<>();
 		match(LeftSquare);
-		List<Identifier> name = parseSectionName();
+		String name = parseSectionName();
 		match(RightSquare);
 		skipWhiteSpace();
 		while (index < tokens.size()) {
@@ -85,50 +81,47 @@ public class ConfigFileParser {
 			skipWhiteSpace();
 		}
 		// Construct the new section
-		Table section = new Table(new Tuple<>(name), new Tuple<>(declarations));
-		//
-		return annotateSourceLocation(section, start);
+		return new Table(name, declarations);
 	}
 
-	private List<Identifier> parseSectionName() {
-		ArrayList<Identifier> identifiers = new ArrayList<>();
-		identifiers.add(parseIdentifier());
+	private String parseSectionName() {
+		String id = "";
+		id += parseIdentifier();
 		while (index < tokens.size() && tokens.get(index).kind == Dot) {
 			match(Token.Kind.Dot);
-			identifiers.add(parseIdentifier());
+			id += "." + parseIdentifier();
 		}
-		return identifiers;
+		return id;
 	}
 
 	private KeyValuePair parseKeyValuePair() {
-		int start = index;
-		Identifier key = parseIdentifier();
+		String key = parseIdentifier();
 		match(Token.Kind.Equals);
-		Value value = parseValue();
-		KeyValuePair r = annotateSourceLocation(new KeyValuePair(key, value), start);
+		Object value = parseValue();
+		KeyValuePair r = new KeyValuePair(key, value);
 		skipWhiteSpace();
 		return r;
 	}
 
-	private Value parseValue() {
+	private Object parseValue() {
 		checkNotEof();
 		int start = index;
-		Value value;
+		Object value;
 		Token token = tokens.get(index);
 		match(token.kind);
 		switch (token.kind) {
 		case False:
-			value = new Value.Bool(false);
+			value = false;
 			break;
 		case True:
-			value = new Value.Bool(true);
+			value = true;
 			break;
 		case IntValue:
-			value = new Value.Int(new BigInteger(token.text));
+			value = new BigInteger(token.text);
 			break;
 		case StringValue:
 			// FIXME: this is probably broken at the extremes
-			value = new Value.UTF8(parseString(token.text).getBytes());
+			value = parseString(token.text);
 			break;
 		case LeftSquare:
 			index = start;
@@ -138,50 +131,34 @@ public class ConfigFileParser {
 			syntaxError("unknown token", token);
 			return null; // deadcode
 		}
-		return annotateSourceLocation(value, start);
+		return value;
 	}
 
-	private Value.Array parseArrayValue() {
+	private Object[] parseArrayValue() {
 		checkNotEof();
 		int start = index;
 		match(LeftSquare);
-		ArrayList<Value> values = new ArrayList<>();
-		Value last = null;
+		ArrayList<Object> values = new ArrayList<>();
+		Object last = null;
 		while (eventuallyMatch(RightSquare) == null) {
 			if(last != null) {
 				match(Comma);
 			}
-			Value v = parseValue();
+			Object v = parseValue();
 			if(last == null) {
 				last = v;
 			} else if(last.getClass() != v.getClass()){
-				throw new SyntacticException("array elements require same type", file, v);
+				throw new IllegalArgumentException("array elements require same type");
 			}
 			values.add(v);
 		}
-		return new Value.Array(values);
+		return values.toArray(new Object[values.size()]);
 	}
 
-	private Identifier parseIdentifier() {
-		int start = skipWhiteSpace(index);
+	private String parseIdentifier() {
+		skipWhiteSpace(index);
 		Token token = match(Identifier);
-		Identifier id = new Identifier(token.text);
-		return annotateSourceLocation(id, start);
-	}
-
-	private <T extends SyntacticItem> T annotateSourceLocation(T item, int start) {
-		return annotateSourceLocation(item, start, index - 1);
-	}
-
-	private <T extends SyntacticItem> T annotateSourceLocation(T item, int start, int end) {
-		// Allocate item to enclosing WhileyFile. This is necessary so that the
-		// annotations can then be correctly allocated as well.
-		item = file.allocate(item);
-		// Determine the first and last token representing this span.
-		Token first = tokens.get(start);
-		Token last = tokens.get(end);
-		file.allocate(new Attribute.Span(item, first.start, last.end()));
-		return item;
+		return token.text;
 	}
 
 	/**
@@ -372,7 +349,7 @@ public class ConfigFileParser {
 			} else {
 				// I believe this is actually dead-code, since checkNotEof()
 				// won't be called before at least one token is matched.
-				throw new SyntacticException("unexpected end-of-file", file, null);
+				throw new IllegalArgumentException("unexpected end-of-file");
 			}
 		}
 	}
@@ -588,7 +565,7 @@ public class ConfigFileParser {
 	}
 
 	private void syntaxError(String msg, Token t) {
-		throw new SyntacticException(msg, file, new ConfigFile.Attribute.Span(null, t.start, t.end()));
+		throw new RuntimeException(msg);
 	}
 
 	/**

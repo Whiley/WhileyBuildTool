@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -24,17 +25,15 @@ import java.util.Set;
 
 import jbfs.core.Build;
 import jbfs.core.Content;
+import jbfs.util.Pair;
 import jbfs.util.Trie;
-import wycc.lang.*;
-import wycc.util.AbstractCompilationUnit;
-import wycc.util.AbstractSyntacticItem;
 
-public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements Build.Artifact {
+public class ConfigFile implements Build.Artifact {
 	// =========================================================================
 	// Content Type
 	// =========================================================================
 
-	public static final Content.Type<ConfigFile> ContentType = new Content.Type<ConfigFile>() {
+	public static final Content.Type<ConfigFile> ContentType = new Content.Type<>() {
 		@Override
 		public ConfigFile read(Trie id, InputStream input, Content.Registry registry) throws IOException {
 			ConfigFileLexer lexer = new ConfigFileLexer(input);
@@ -74,17 +73,15 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 	/**
 	 * The list of declarations which make up this configuration.
 	 */
-	private Tuple<Declaration> declarations;
+	private ArrayList<Declaration> declarations;
 
 	public ConfigFile(Trie path) {
-		this.declarations = new Tuple<>();
+		this.declarations = new ArrayList<>();
 		this.path = path;
 	}
 
-	public ConfigFile(Trie path, Tuple<Declaration> declarations) {
-		this.declarations = declarations;
-		//
-		allocate(declarations);
+	public ConfigFile(Trie path, Collection<Declaration> declarations) {
+		this.declarations = new ArrayList<>(declarations);
 		this.path = path;
 	}
 
@@ -103,16 +100,16 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 		return Collections.EMPTY_LIST;
 	}
 
-	public static interface Declaration extends SyntacticItem {
+	public static interface Declaration {
 
 	}
 
-	public Tuple<Declaration> getDeclarations() {
+	public List<Declaration> getDeclarations() {
 		return declarations;
 	}
 
-	public void setDeclarations(Tuple<Declaration> declarations) {
-		this.declarations = declarations;
+	public void setDeclarations(List<Declaration> declarations) {
+		this.declarations = new ArrayList<>(declarations);
 	}
 
 	/**
@@ -128,35 +125,20 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 		return new Wrapper(schema, strict);
 	}
 
-	public static class Table extends AbstractSyntacticItem implements Declaration {
-
-		public Table(Tuple<Identifier> name, Tuple<KeyValuePair> contents) {
-			super(DECL_section, name, contents);
+	public static class Table implements Declaration {
+		private final String name;
+		private final ArrayList<KeyValuePair> contents;
+		public Table(String name, List<KeyValuePair> contents) {
+			this.name = name;
+			this.contents = new ArrayList<>(contents);
 		}
 
-		public Tuple<Identifier> getName() {
-			return (Tuple<Identifier>) get(0);
+		public String getName() {
+			return name;
 		}
 
-		public String getNameString() {
-			Tuple<Identifier> ids = getName();
-			String r = "";
-			for (int i = 0; i != ids.size(); ++i) {
-				if (i != 0) {
-					r = r + "/";
-				}
-				r = r + ids.get(i);
-			}
-			return r;
-		}
-
-		public Tuple<KeyValuePair> getContents() {
-			return (Tuple) get(1);
-		}
-
-		@Override
-		public SyntacticItem clone(SyntacticItem[] operands) {
-			return new Table((Tuple<Identifier>) operands[0], (Tuple<KeyValuePair>) operands[1]);
+		public List<KeyValuePair> getContents() {
+			return contents;
 		}
 	}
 
@@ -166,37 +148,32 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 	 * @author David J. Pearce
 	 *
 	 */
-	public static class KeyValuePair extends AbstractSyntacticItem implements Declaration {
+	public static class KeyValuePair extends Pair<String,Object> implements Declaration {
 
-		public KeyValuePair(Identifier key, Value value) {
-			super(DECL_keyvalue, key, value);
+		public KeyValuePair(String key, Object value) {
+			super(key, value);
 		}
 
-		public Identifier getKey() {
-			return (Identifier) get(0);
+		public String getKey() {
+			return first();
 		}
 
-		public Value getValue() {
-			return (Value) get(1);
-		}
-
-		@Override
-		public SyntacticItem clone(SyntacticItem[] operands) {
-			return new KeyValuePair((Identifier) operands[0], (Value) operands[1]);
+		public Object getValue() {
+			return second();
 		}
 	}
 
-	private KeyValuePair getKeyValuePair(Trie key, Tuple<? extends Declaration> decls) {
+	private KeyValuePair getKeyValuePair(Trie key, List<? extends Declaration> decls) {
 		String table = key.parent().toString();
 		//
-		for(int i=0;i!=decls.size();++i) {
+		for (int i = 0; i != decls.size(); ++i) {
 			Declaration decl = decls.get(i);
-			if(key.size() > 1 && decl instanceof Table) {
+			if (key.size() > 1 && decl instanceof Table) {
 				Table s = (Table) decl;
-				if (s.getNameString().equals(table)) {
+				if (s.getName().equals(table)) {
 					return getKeyValuePair(key.subpath(key.size() - 1, key.size()), s.getContents());
 				}
-			} else if(decl instanceof KeyValuePair && key.size() == 1){
+			} else if (decl instanceof KeyValuePair && key.size() == 1) {
 				KeyValuePair p = (KeyValuePair) decl;
 				if (p.getKey().toString().equals(key.get(0))) {
 					return p;
@@ -204,31 +181,6 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 			}
 		}
 		return null;
-	}
-
-	private void insert(Trie key, Object value, Tuple<Declaration> decls) {
-		throw new UnsupportedOperationException();
-		// FIXME: needs to be updated
-//		for(int i=0;i!=decls.size();++i) {
-//			Declaration decl = decls.get(i);
-//			if(key.size() > 1 && decl instanceof Section) {
-//				Section s = (Section) decl;
-//				if(s.getName().equals(key.get(0))) {
-//					insert(key.subpath(1, key.size()), value, s.getContents());
-//				}
-//			} else if(decl instanceof KeyValuePair && key.size() == 1){
-//				KeyValuePair p = (KeyValuePair) decl;
-//				if(p.getKey().equals(key.get(0))) {
-//					p.value = value;
-//					return;
-//				}
-//			}
-//		}
-//		if(key.size() == 1) {
-//			declarations.add(new KeyValuePair(key.get(0),value));
-//		} else {
-//			throw new IllegalArgumentException("invalid key access \"" + key + "\"");
-//		}
 	}
 
 	private class Wrapper implements Configuration {
@@ -274,43 +226,31 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 			Configuration.KeyValueDescriptor<?> descriptor = schema.getDescriptor(key);
 			// Find the key-value pair
 			KeyValuePair kvp = getKeyValuePair(key, declarations);
-			if(kvp == null && descriptor.hasDefault()) {
+			if (kvp == null && descriptor.hasDefault()) {
 				return (T) descriptor.getDefault();
-			} else if(kvp != null) {
+			} else if (kvp != null) {
 				// Extract the value
 				Object value = kvp.getValue();
 				// Sanity check the expected kind
 				if (!kind.isInstance(value)) {
-					throw new IllegalArgumentException("incompatible key access: expected " + kind.getSimpleName() + " got "
-							+ descriptor.getType().getSimpleName());
+					throw new IllegalArgumentException("incompatible key access: expected " + kind.getSimpleName()
+							+ " got " + descriptor.getType().getSimpleName());
 				}
 				//
-				if(descriptor != null) {
-					// 	Convert into value
+				if (descriptor != null) {
+					// Convert into value
 					return (T) value;
 				} else {
-					throw new SyntacticException("hidden key access: " + key, ConfigFile.this, null);
+					throw new IllegalArgumentException("hidden key access: " + key);
 				}
 			} else {
-				throw new SyntacticException("invalid key access: " + key, ConfigFile.this, null);
+				throw new IllegalArgumentException("invalid key access: " + key);
 			}
 		}
 
 		@Override
 		public <T> void write(Trie key, T value) {
-			// Get the descriptor for this key
-			Configuration.KeyValueDescriptor descriptor = schema.getDescriptor(key);
-			// Sanity check the expected kind
-			Class<?> kind = descriptor.getType();
-			//
-			if (!kind.isInstance(value)) {
-				throw new IllegalArgumentException("incompatible key access: expected " + kind.getSimpleName() + " got "
-						+ descriptor.getType().getSimpleName());
-			} else if(!descriptor.isValid(value)) {
-				throw new IllegalArgumentException("incompatible key access: value does not match expected invariant");
-			}
-			// Update the relevant key-value pair
-			insert(key, value, declarations);
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -337,26 +277,23 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 			Configuration.KeyValueDescriptor<?> descriptor = schema.getDescriptor(key);
 			// Find the key-value pair
 			KeyValuePair kvp = getKeyValuePair(key, declarations);
-			if(kvp == null && descriptor.hasDefault()) {
+			if (kvp == null && descriptor.hasDefault()) {
 				return descriptor.getDefault();
-			} else if(kvp != null) {
+			} else if (kvp != null) {
 				// Extract the value
 				return kvp.getValue();
 			} else {
-				throw new SyntacticException("invalid key access: " + key, ConfigFile.this, null);
+				throw new IllegalArgumentException("invalid key access: " + key);
 			}
 		}
 
-		private void match(Trie id, Trie filter, Tuple<? extends Declaration> declarations, ArrayList<Trie> matches) {
+		private void match(Trie id, Trie filter, List<? extends Declaration> declarations, ArrayList<Trie> matches) {
 			for (int i = 0; i != declarations.size(); ++i) {
 				Declaration decl = declarations.get(i);
 				if (decl instanceof Table) {
 					Table table = (Table) decl;
 					// FIXME: could be more efficient!
-					Trie tid = id;
-					for (Identifier c : table.getName()) {
-						tid = tid.append(c.toString());
-					}
+					Trie tid = id.append(Trie.fromString(table.getName()));
 					match(tid, filter, table.getContents(), matches);
 				} else if (decl instanceof KeyValuePair) {
 					KeyValuePair kvp = (KeyValuePair) decl;
@@ -382,7 +319,7 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 				List<Trie> results = matchAll(descriptor.getFilter());
 				// Sanity check whether required
 				if(results.size() == 0 && descriptor.isRequired()) {
-					throw new SyntacticException("missing key value: " + descriptor.getFilter(), ConfigFile.this, null);
+					throw new IllegalArgumentException("missing key value: " + descriptor.getFilter());
 				}
 				// Check all matching keys
 				for (Trie id : results) {
@@ -390,26 +327,24 @@ public class ConfigFile extends AbstractCompilationUnit<ConfigFile> implements B
 					KeyValuePair kvp = getKeyValuePair(id, declarations);
 					// NOTE: kvp != null
 					if (!kind.isInstance(kvp.getValue())) {
-						throw new SyntacticException(
-								"invalid key value (expected " + kind.getSimpleName() + ")",
-								ConfigFile.this, kvp);
+						throw new IllegalArgumentException("invalid key value (expected " + kind.getSimpleName() + ")");
 					} else if (!descriptor.isValid(kvp.getValue())) {
 						// Identified invalid key-value pair
-						throw new SyntacticException("invalid key value", ConfigFile.this, kvp);
+						throw new IllegalArgumentException("invalid key value");
 					}
 				}
 				// Remember every matched attribute
 				matched.addAll(results);
 			}
-			if(strict) {
+			if (strict) {
 				// Check whether any unmatched key-valid pairs exist or not
 				List<Trie> all = matchAll(Trie.fromString("**/*"));
-				for(int i=0;i!=all.size();++i) {
+				for (int i = 0; i != all.size(); ++i) {
 					Trie id = all.get(i);
-					if(!matched.contains(id)) {
+					if (!matched.contains(id)) {
 						// Found unmatched attribute
 						KeyValuePair kvp = getKeyValuePair(id, declarations);
-						throw new SyntacticException("invalid key: " + id, ConfigFile.this, kvp.getKey());
+						throw new IllegalArgumentException("invalid key: " + id);
 					}
 				}
 			}
