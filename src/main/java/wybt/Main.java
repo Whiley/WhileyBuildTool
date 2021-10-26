@@ -31,14 +31,12 @@ import wybt.commands.*;
 import wybt.lang.Command;
 import wybt.lang.Package;
 import wybt.lang.Plugin;
+import wybt.lang.Syntactic;
 import wybt.util.CommandParser;
 import wybt.util.LocalPackageRepository;
 import wybt.util.Logger;
 import wybt.util.RemotePackageRepository;
 import wybt.util.StdPackageResolver;
-import wycc.util.AbstractCompilationUnit.Value;
-import wycc.lang.SyntacticException;
-
 
 /**
  * Provides a command-line interface to the Whiley Compiler Collection. This is
@@ -249,7 +247,7 @@ public class Main implements Command.Environment {
 			boolean ec = instance.execute(path,template);
 			// Done
 			return ec ? 0 : 1;
-		} catch(SyntacticException e) {
+		} catch(Syntactic.Exception e) {
 			e.outputSourceError(System.err, false);
 			if (verbose) {
 				printStackTrace(System.err, e);
@@ -363,7 +361,7 @@ public class Main implements Command.Environment {
 		List<Trie> plugins = global.matchAll(Trie.fromString("plugins/*"));
 		// start modules
 		for (Trie id : plugins) {
-			Value.UTF8 activator = global.get(Value.UTF8.class, id);
+			String activator = global.get(String.class, id);
 			// Only activate if enabled
 			try {
 				Class<?> c = Class.forName(activator.toString());
@@ -427,7 +425,7 @@ public class Main implements Command.Environment {
 			logger.logTimedMessage("Read " + root.getDirectory() + "/" + id + ".toml", 0, 0);
 			// Construct configuration according to given schema
 			return cf.toConfiguration(schema, false);
-		} catch (SyntacticException e) {
+		} catch (Syntactic.Exception e) {
 			e.outputSourceError(System.out, false);
 			System.exit(-1);
 			return null;

@@ -13,9 +13,7 @@
 // limitations under the License.
 package wybt.commands;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -234,58 +232,25 @@ public class BuildCmd implements Command {
 		}
 	}
 
-	public static void printSyntacticMarkers(PrintStream output, Syntactic.Heap target, SourceFile... sources) throws IOException {
-		// Extract all syntactic markers from entries in the build graph
-		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
-		// For each marker, print out error messages appropriately
-		for (int i = 0; i != items.size(); ++i) {
-			// Log the error message
-			printSyntacticMarkers(output, items.get(i), sources);
-		}
-	}
-
-	/**
-	 * Print out an individual syntactic markers.
-	 *
-	 * @param marker
-	 */
-	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker, SourceFile... sources) {
-		// Identify enclosing source file
-		SourceFile source = getSourceEntry(marker.getSource(), sources);
-		String filename = source.getPath().toString() + "." + source.getContentType().getSuffix();
-		//
-		Span span = marker.getTarget().getAncestor(AbstractCompilationUnit.Attribute.Span.class);
-		// Read the enclosing line so we can print it
-		SourceFile.Line line = source.getEnclosingLine(span.getStart().get().intValue());
-		// Sanity check we found it
-		if (line != null) {
-			// print the error message
-			output.println(filename + ":" + line.getNumber() + ": " + marker.getMessage());
-			// Finally print the line highlight
-			printLineHighlight(output, span, line);
-		} else {
-			output.println(filename + ":?: " + marker.getMessage());
-		}
-	}
 
 	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
 			List<? extends Build.Artifact> sources) {
-		// Identify enclosing source file
-		SourceFile source = getSourceEntry(marker.getSource(), sources);
-		String filename = source.getPath().toString();
-		//
-		Span span = marker.getTarget().getAncestor(AbstractCompilationUnit.Attribute.Span.class);
-		// Read the enclosing line so we can print it
-		SourceFile.Line line = source.getEnclosingLine(span.getStart().get().intValue());
-		// Sanity check we found it
-		if (line != null) {
-			// print the error message
-			output.println(filename + ":" + line.getNumber() + ": " + marker.getMessage());
-			// Finally print the line highlight
-			printLineHighlight(output, span, line);
-		} else {
-			output.println(filename + ":?: " + marker.getMessage());
-		}
+//		// Identify enclosing source file
+//		SourceFile source = getSourceEntry(marker.getSource(), sources);
+//		String filename = source.getPath().toString();
+//		//
+//		Span span = marker.getTarget().getAncestor(AbstractCompilationUnit.Attribute.Span.class);
+//		// Read the enclosing line so we can print it
+//		SourceFile.Line line = source.getEnclosingLine(span.getStart().get().intValue());
+//		// Sanity check we found it
+//		if (line != null) {
+//			// print the error message
+//			output.println(filename + ":" + line.getNumber() + ": " + marker.getMessage());
+//			// Finally print the line highlight
+//			printLineHighlight(output, span, line);
+//		} else {
+//			output.println(filename + ":?: " + marker.getMessage());
+//		}
 	}
 
 	public static List<Syntactic.Marker> extractSyntacticMarkers(Build.Artifact... binaries) throws IOException {
@@ -311,42 +276,18 @@ public class BuildCmd implements Command {
 	 * @throws IOException
 	 */
 	public static List<Syntactic.Marker> extractSyntacticMarkers(Syntactic.Heap h) throws IOException {
-		List<Syntactic.Marker> annotated = new ArrayList<>();
-		// FIXME: this just reports all syntactic markers
-		annotated.addAll(h.findAll(Syntactic.Marker.class));
-		//
-		return annotated;
+		throw new IllegalArgumentException();
 	}
 
-	private static SourceFile getSourceEntry(Trie id, SourceFile... sources) {
-		//
-		for (SourceFile s : sources) {
-			if (id.equals(s.getPath())) {
-				return s;
-			}
-		}
-		return null;
-	}
-
-	private static SourceFile getSourceEntry(Trie id, List<? extends Build.Artifact> sources) {
-		//
-		for (Build.Artifact s : sources) {
-			if (id.equals(s.getPath())) {
-				// FIXME: this is broken
-				return (SourceFile) s;
-			}
-		}
-		return null;
-	}
 
 	private static void printLineHighlight(PrintStream output,
-										   Span span,
+										   Syntactic.Span span,
 										   SourceFile.Line enclosing) {
 		// Extract line text
 		String text = enclosing.getText();
 		// Determine start and end of span
-		int start = span.getStart().get().intValue() - enclosing.getOffset();
-		int end = Math.min(text.length() - 1, span.getEnd().get().intValue() - enclosing.getOffset());
+		int start = span.getStart() - enclosing.getOffset();
+		int end = Math.min(text.length() - 1, span.getEnd() - enclosing.getOffset());
 		// NOTE: in the following lines I don't print characters
 		// individually. The reason for this is that it messes up the
 		// ANT task output.
@@ -365,31 +306,5 @@ public class BuildCmd implements Command {
 			str += "^";
 		}
 		output.println(str);
-	}
-
-	private static class EnclosingLine {
-		private int lineNumber;
-		private int start;
-		private int end;
-		private int lineStart;
-		private int lineEnd;
-		private String lineText;
-
-		public EnclosingLine(int start, int end, int lineNumber, int lineStart, int lineEnd, String lineText) {
-			this.start = start;
-			this.end = end;
-			this.lineNumber = lineNumber;
-			this.lineStart = lineStart;
-			this.lineEnd = lineEnd;
-			this.lineText = lineText;
-		}
-
-		public int columnStart() {
-			return start - lineStart;
-		}
-
-		public int columnEnd() {
-			return Math.min(end, lineEnd) - lineStart;
-		}
 	}
 }

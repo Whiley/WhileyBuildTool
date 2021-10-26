@@ -13,8 +13,6 @@
 // limitations under the License.
 package wybt;
 
-import wycc.util.AbstractCompilationUnit;
-
 import java.util.regex.Pattern;
 
 import jbfs.util.Trie;
@@ -49,33 +47,31 @@ public class Schemas {
      * This determines what files are included in a package be default (i.e. when
      * the build/includes attribute is not specified).
      */
-    public static final AbstractCompilationUnit.Value.Array DEFAULT_BUILD_INCLUDES = new AbstractCompilationUnit.Value.Array(
+    public static final Object[] DEFAULT_BUILD_INCLUDES = {
             // Include package description by default
-            new AbstractCompilationUnit.Value.UTF8("wy.toml"),
+            "wy.toml",
             // Include all wyil files by default
-            new AbstractCompilationUnit.Value.UTF8("**/*.wyil"),
+            "**/*.wyil",
             // Include all whiley files by default
-            new AbstractCompilationUnit.Value.UTF8("**/*.whiley")
-    );
+            "**/*.whiley"
+    };
 
-    /**
-     * Schema for packages (i.e. which applies to a single project for a given user).
-     */
-    public static Configuration.Schema PACKAGE = Configuration.fromArray(
-            // Required items
-            Configuration.UNBOUND_STRING(Trie.fromString("package/name"), "Name of this package", new AbstractCompilationUnit.Value.UTF8("main")),
-            Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("package/authors"), "Author(s) of this package", false),
-            Configuration.UNBOUND_STRING(Trie.fromString("package/version"), "Semantic version of this package", false),
-            // Build items
-            Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("build/platforms"),
-                    "Target platforms for this package (default just \"whiley\")",
-                    new AbstractCompilationUnit.Value.Array(new AbstractCompilationUnit.Value.UTF8("whiley"))),
-            Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("build/includes"), "Files to include in package",
-                    DEFAULT_BUILD_INCLUDES),
-            Configuration.UNBOUND_STRING(Trie.fromString("build/main"), "Identify main method", false),
-            // Optional items
+	/**
+	 * Schema for packages (i.e. which applies to a single project for a given
+	 * user).
+	 */
+	public static Configuration.Schema PACKAGE = Configuration.fromArray(
+			// Required items
+			Configuration.UNBOUND_STRING(Trie.fromString("package/name"), "Name of this package", "main"),
+			Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("package/authors"), "Author(s) of this package", false),
+			Configuration.UNBOUND_STRING(Trie.fromString("package/version"), "Semantic version of this package", false),
+			// Build items
+			Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("build/platforms"),
+					"Target platforms for this package (default just \"whiley\")", new Object[] { "whiley" }),
+			Configuration.UNBOUND_STRING_ARRAY(Trie.fromString("build/includes"), "Files to include in package",
+					DEFAULT_BUILD_INCLUDES),
+			Configuration.UNBOUND_STRING(Trie.fromString("build/main"), "Identify main method", false),
+			// Optional items
 			Configuration.REGEX_STRING(Trie.fromString("dependencies/*"), "Packages this package depends on", false,
-					Pattern.compile("\\d+.\\d+.\\d+"))
-    );
-
+					Pattern.compile("\\d+.\\d+.\\d+")));
 }

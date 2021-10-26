@@ -13,17 +13,90 @@
 // limitations under the License.
 package wybt.lang;
 
+import java.io.PrintStream;
 import java.util.List;
+import java.util.function.Predicate;
 
+import jbfs.core.Build;
 import jbfs.util.Trie;
 
 public class Syntactic {
-	public static interface Heap {
+	/**
+	 * Represents an exception which has been raised on a synctic item. The purpose
+	 * of the exception is to identify this item in order that better information
+	 * can be reported.
+	 *
+	 * @author David J. Pearce
+	 *
+	 */
+	public class Exception extends RuntimeException {
+		public void outputSourceError(PrintStream out, boolean brief) {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	/**
+	 * A syntactic heap represents a collection of syntactic items.
+	 *
+	 * @author David J. Pearce
+	 *
+	 */
+	public static interface Heap extends Build.Artifact {
 
+		/**
+		 * Get the number of items in the heap.
+		 *
+		 * @return
+		 */
+		public int size();
+
+		/**
+		 * Return the ith syntactic item in this heap. This may return null if the
+		 * item in question has been garbage collected.
+		 *
+		 * @param index
+		 * @return
+		 */
+		public SyntacticItem getSyntacticItem(int ith);
+
+		/**
+		 * Find first heap item matching the given constraint.
+		 * 
+		 * @param <T>
+		 * @param kind
+		 * @param where
+		 * @return
+		 */
+		public <T extends SyntacticItem> T match(Class<T> kind, Predicate<SyntacticItem> where);
+		
+		/**
+		 * Match all heap items matching the given constraint.
+		 * 
+		 * @param <T>
+		 * @param kind
+		 * @param where
+		 * @return
+		 */
+		public <T extends SyntacticItem> List<T> matchAll(Class<T> kind, Predicate<SyntacticItem> where);
+	
+		/**
+		 * Get an associated attribute map with this syntactic heap.
+		 * 
+		 * @param <T>
+		 * @param <S>
+		 * @param kind
+		 * @return
+		 */
+		public <T, S extends AttributeMap<T>> S getAttributeMap(Class<T> kind);
 	}
 
 	public static interface SyntacticItem extends Comparable<SyntacticItem> {
 
+		/**
+		 * Get the opcode associated with this item.
+		 * 
+		 * @return
+		 */
 		public int getOpcode();
 
 		/**
@@ -34,7 +107,7 @@ public class Syntactic {
 		public int size();
 
 		/**
-		 * Return the ith top-level child in this bytecode.
+		 * Return the ith top-level operand in this bytecode.
 		 *
 		 * @param i
 		 * @return
@@ -64,29 +137,9 @@ public class Syntactic {
 		public byte[] getData();
 
 		/**
-		 * Get the first syntactic item of a given kind which refers to this item.
-		 *
-		 * @param kind
-		 * @return
+		 * Get the enclosing heap for this item.
 		 */
-		public <T extends SyntacticItem> T getParent(Class<T> kind);
-
-		/**
-		 * Get all syntactic items of a given kind which refer to this item.
-		 *
-		 * @param kind
-		 * @return
-		 */
-		public <T extends SyntacticItem> List<T> getParents(Class<T> kind);
-
-		/**
-		 * Get the first syntactic item of a given kind which refers directly or
-		 * indirectly to this item.
-		 *
-		 * @param kind
-		 * @return
-		 */
-		public <T extends SyntacticItem> T getAncestor(Class<T> kind);
+		public Heap getHeap();
 
 		/**
 		 * Create a new copy of the given syntactic item with the given operands.
@@ -129,5 +182,28 @@ public class Syntactic {
 		 * @return
 		 */
 		public Trie getSource();
+	}
+	
+	/**
+	 * A span associates a given syntactic item with a contiguous region of text in
+	 * the original source file.
+	 *
+	 * @author David J. Pearce
+	 *
+	 */
+	public interface Span {
+		public int getStart();
+
+		public int getEnd();
+	}
+	
+	/**
+	 * 
+	 * @author djp
+	 *
+	 * @param <T>
+	 */
+	public interface AttributeMap<T> {
+		public T get(SyntacticItem item);
 	}
 }
