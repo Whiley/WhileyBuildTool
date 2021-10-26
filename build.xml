@@ -1,4 +1,4 @@
-<project name="wybt" default="dist">
+<project name="wy" default="dist">
   <import file="config.xml"/>
 
   <target name="setup">
@@ -64,7 +64,7 @@
     <echo message="Copying scripts..."/>
     <copy todir="${RELEASE_DIR}/bin">
       <fileset dir="scripts">
-	<include name="wybt"/>
+	<include name="wy"/>
       </fileset>
     </copy>
     <chmod verbose="Yes" perm="0544">

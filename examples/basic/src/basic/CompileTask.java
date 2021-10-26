@@ -3,6 +3,8 @@ package basic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import basic.BinaryFile.Stmt;
 import jbfs.core.Build;
@@ -10,6 +12,7 @@ import jbfs.util.Pair;
 import jbfs.util.Trie;
 
 public class CompileTask implements Build.Task {
+	private static final Pattern LINE_MATCH = Pattern.compile("[a-zA-Z0-9/\\\\_.:]+");
 	private final Trie path;
 	private final SourceFile source;
 
@@ -48,8 +51,17 @@ public class CompileTask implements Build.Task {
 	}
 
 	private Stmt parseStatement(String line) {
-		System.out.println("GOT: " + line);
-		return null;
+		Matcher matcher = LINE_MATCH.matcher(line);
+		//
+		if (matcher.matches()) {
+			int lineno = Integer.parseInt(matcher.group(0));
+			String rest = matcher.group(1);
+			System.out.println("GOT LINE: " + lineno);
+			//
+			return null;
+		} else {
+			throw new RuntimeException("error reporting?");
+		}
 	}
 
 	public static List<String> getLines(SourceFile source) {
