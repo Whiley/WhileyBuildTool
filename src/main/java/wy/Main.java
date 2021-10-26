@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wybt;
+package wy;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,18 +25,18 @@ import jbfs.util.DirectoryRoot;
 import jbfs.util.Pair;
 import jbfs.util.Trie;
 import jbfs.util.ZipFile;
-import wybt.cfg.*;
-import wybt.cfg.Configuration.Schema;
-import wybt.commands.*;
-import wybt.lang.Command;
-import wybt.lang.Package;
-import wybt.lang.Plugin;
-import wybt.lang.Syntactic;
-import wybt.util.CommandParser;
-import wybt.util.LocalPackageRepository;
-import wybt.util.Logger;
-import wybt.util.RemotePackageRepository;
-import wybt.util.StdPackageResolver;
+import wy.cfg.*;
+import wy.cfg.Configuration.Schema;
+import wy.commands.*;
+import wy.lang.Command;
+import wy.lang.Package;
+import wy.lang.Plugin;
+import wy.lang.Syntactic;
+import wy.util.CommandParser;
+import wy.util.LocalPackageRepository;
+import wy.util.Logger;
+import wy.util.RemotePackageRepository;
+import wy.util.StdPackageResolver;
 
 /**
  * Provides a command-line interface to the Whiley Compiler Collection. This is
@@ -228,7 +228,7 @@ public class Main implements Command.Environment {
 		// Add default descriptors
 		menv.getCommandDescriptors().addAll(Arrays.asList(DEFAULT_COMMANDS));
 		// Construct environment and execute arguments
-		Command.Descriptor descriptor = wybt.commands.Root.DESCRIPTOR(menv.getCommandDescriptors());
+		Command.Descriptor descriptor = wy.commands.Root.DESCRIPTOR(menv.getCommandDescriptors());
 		// Parse the given command-line
 		Command.Template template = new CommandParser(descriptor).parse(args);
 		// Apply verbose setting

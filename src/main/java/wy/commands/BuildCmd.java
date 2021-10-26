@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wybt.commands;
+package wy.commands;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -32,10 +32,10 @@ import jbfs.core.Build.SnapShot;
 import jbfs.util.Pair;
 import jbfs.util.Transactions;
 import jbfs.util.Trie;
-import wybt.cfg.Configuration;
-import wybt.cfg.Configuration.Schema;
-import wybt.lang.Command;
-import wybt.lang.Syntactic;
+import wy.cfg.Configuration;
+import wy.cfg.Configuration.Schema;
+import wy.lang.Command;
+import wy.lang.Syntactic;
 
 /**
  *

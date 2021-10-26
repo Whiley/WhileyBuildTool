@@ -11,15 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wybt.util;
+package wy.util;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import jbfs.util.Pair;
-import wybt.lang.Command;
-import wybt.lang.Command.Option;
-import wybt.lang.Command.Template;
+import wy.lang.Command;
+import wy.lang.Command.Option;
+import wy.lang.Command.Template;
 
 
 /**

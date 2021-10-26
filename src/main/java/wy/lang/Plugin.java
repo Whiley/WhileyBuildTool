@@ -11,14 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package wybt.lang;
+package wy.lang;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import jbfs.core.Content;
-import wybt.util.Logger;
+import wy.util.Logger;
 
 /**
  * <p>
@@ -173,7 +173,7 @@ public interface Plugin {
 		 *
 		 * @param activator
 		 */
-		public void activate(wybt.lang.Plugin.Activator activator) {
+		public void activate(wy.lang.Plugin.Activator activator) {
 			Plugin p = activator.start(this);
 			// NOTE: there is quite a lot more we could do here.
 		}
@@ -184,7 +184,7 @@ public interface Plugin {
 
 		@Override
 		public <T> void register(Class<T> ep, T feature) {
-			wybt.lang.Plugin.ExtensionPoint<T> container = (wybt.lang.Plugin.ExtensionPoint<T>) extensionPoints.get(ep);
+			wy.lang.Plugin.ExtensionPoint<T> container = (wy.lang.Plugin.ExtensionPoint<T>) extensionPoints.get(ep);
 			if (ep == null) {
 				throw new RuntimeException("Missing extension point: " + ep.getCanonicalName());
 			} else {
@@ -193,7 +193,7 @@ public interface Plugin {
 		}
 
 		@Override
-		public <T> void create(Class<T> extension, wybt.lang.Plugin.ExtensionPoint<T> ep) {
+		public <T> void create(Class<T> extension, wy.lang.Plugin.ExtensionPoint<T> ep) {
 			if (extensionPoints.containsKey(extension)) {
 				throw new RuntimeException("Extension point already exists: " + extension);
 			} else {

@@ -1,11 +1,11 @@
-package wybt.commands;
+package wy.commands;
 
 import java.util.Arrays;
 import java.util.List;
 
 import jbfs.util.Trie;
-import wybt.cfg.Configuration;
-import wybt.lang.Command;
+import wy.cfg.Configuration;
+import wy.lang.Command;
 
 /**
  * The "root" command of the command tree.  This is the starting point for all command execution, and is really just a

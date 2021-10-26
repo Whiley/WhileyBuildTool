@@ -1,18 +1,17 @@
 package basic;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
-import wybt.cfg.Configuration;
-import wybt.cfg.Configuration.Schema;
-import wybt.lang.Command;
-import wybt.lang.Command.Environment;
-import wybt.lang.Plugin;
-import wybt.lang.Plugin.Context;
 import jbfs.core.Build;
 import jbfs.core.Content;
 import jbfs.util.Trie;
+import wy.cfg.Configuration;
+import wy.cfg.Configuration.Schema;
+import wy.lang.Command;
+import wy.lang.Plugin;
+import wy.lang.Command.Environment;
+import wy.lang.Plugin.Context;
 
 public class Activator implements Plugin.Activator {
 
@@ -35,7 +34,6 @@ public class Activator implements Plugin.Activator {
 			Trie srcdir = Trie.fromString("src");
 			Content.Filter<SourceFile> includes = Content.Filter(SourceFile.ContentType,
 					srcdir.append(Trie.EVERYTHING));
-
 			List<SourceFile> files = snapshot.getAll(includes);
 			//
 			System.out.println("FOUND FILES: " + files + " FROM: " + snapshot);
