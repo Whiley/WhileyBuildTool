@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import jbuildstore.core.Content;
+import jcmdarg.core.Command;
 import wy.util.Logger;
 
 /**
@@ -34,8 +35,8 @@ public interface Plugin {
 
 	/**
 	 * A module Context provides a mechanism for modules to interact with their
-	 * environment. In particular, it allows them to register extension points
-	 * which provide the critical mechanism for adding new functionality.
+	 * environment. In particular, it allows them to register extension points which
+	 * provide the critical mechanism for adding new functionality.
 	 *
 	 * @author David J. Pearce
 	 *
@@ -43,20 +44,18 @@ public interface Plugin {
 	public interface Context extends Logger {
 
 		/**
-		 * Responsible for registering a feature as implementing an extension
-		 * within the system.
+		 * Responsible for registering a feature as implementing an extension within the
+		 * system.
 		 *
-		 * @param ep
-		 *            The class representing the extension point (e.g.
-		 *            "wyfs.ContentType").
-		 * @param extension
-		 *            The implementation of the given extension point.
+		 * @param ep        The class representing the extension point (e.g.
+		 *                  "wyfs.ContentType").
+		 * @param extension The implementation of the given extension point.
 		 */
 		public <T> void register(Class<T> ep, T extension);
 
 		/**
-		 * Create a new extension point which subsequent modules can register
-		 * extensions for.
+		 * Create a new extension point which subsequent modules can register extensions
+		 * for.
 		 *
 		 * @param extension
 		 * @param ep
@@ -65,8 +64,8 @@ public interface Plugin {
 	}
 
 	/**
-	 * An extension point in the module is a named entity provided by one
-	 * module, which other modules can register extensions for.
+	 * An extension point in the module is a named entity provided by one module,
+	 * which other modules can register extensions for.
 	 *
 	 * @author David J. Pearce
 	 *
@@ -74,20 +73,18 @@ public interface Plugin {
 	public interface ExtensionPoint<T> {
 
 		/**
-		 * Notify extension point that a new extension has been registered for
-		 * it.
+		 * Notify extension point that a new extension has been registered for it.
 		 *
-		 * @param extension
-		 *            The extension implementation to register with this
-		 *            extension point.
+		 * @param extension The extension implementation to register with this extension
+		 *                  point.
 		 */
 		public void register(T feature);
 	}
 
 	/**
-	 * Represents a class designated as the unique "activator" for a given
-	 * module. This activator is used to control aspects of the module (e.g.
-	 * resources allocated) as it is started and stopped,
+	 * Represents a class designated as the unique "activator" for a given module.
+	 * This activator is used to control aspects of the module (e.g. resources
+	 * allocated) as it is started and stopped,
 	 *
 	 * @author David J. Pearce
 	 *
@@ -95,18 +92,17 @@ public interface Plugin {
 	public interface Activator {
 
 		/**
-		 * This method is called when the module is begun. This gives the module
-		 * an opportunity to register one or more extension points in the
-		 * compiler.
+		 * This method is called when the module is begun. This gives the module an
+		 * opportunity to register one or more extension points in the compiler.
 		 *
 		 * @param context
 		 */
 		public Plugin start(Context context);
 
 		/**
-		 * This method is called when the module is stopped. Any resources used
-		 * by the module should be freed at this point. This includes any
-		 * registered extension points, which should be unregistered.
+		 * This method is called when the module is stopped. Any resources used by the
+		 * module should be freed at this point. This includes any registered extension
+		 * points, which should be unregistered.
 		 *
 		 * @param context
 		 */
@@ -123,10 +119,10 @@ public interface Plugin {
 		private Logger logger = Logger.NULL;
 
 		/**
-		 * The extension points represent registered implementations of interfaces. Each extension point represents a
-		 * class that will be instantiated and configured, and will contribute to some function within the compiler. The
-		 * main extension points are: <i>Routes</i>, <i>Builders</i> and
-		 * <i>ContentTypes</i>.
+		 * The extension points represent registered implementations of interfaces. Each
+		 * extension point represents a class that will be instantiated and configured,
+		 * and will contribute to some function within the compiler. The main extension
+		 * points are: <i>Routes</i>, <i>Builders</i> and <i>ContentTypes</i>.
 		 */
 		public final HashMap<Class<?>, ExtensionPoint<?>> extensionPoints = new HashMap<>();
 
@@ -138,30 +134,20 @@ public interface Plugin {
 		/**
 		 * List of all known commands registered by plugins.
 		 */
-		protected final ArrayList<Command.Descriptor> descriptors = new ArrayList<>();
-
-		/**
-		 * List of all known build platforms registered by plugins.
-		 */
-		protected final ArrayList<Command.Platform> platforms = new ArrayList<>();
+		protected final ArrayList<Command.Descriptor<wy.lang.Environment, Boolean>> descriptors = new ArrayList<>();
 
 		public Environment(Logger logger) {
 			this.logger = logger;
 			create(Content.Type.class, p -> contentTypes.add(p));
 			create(Command.Descriptor.class, p -> descriptors.add(p));
-			create(Command.Platform.class, p -> platforms.add(p));
 		}
 
 		public List<Content.Type<?>> getContentTypes() {
 			return contentTypes;
 		}
 
-		public List<Command.Descriptor> getCommandDescriptors() {
+		public List<Command.Descriptor<wy.lang.Environment, Boolean>> getCommandDescriptors() {
 			return descriptors;
-		}
-
-		public List<Command.Platform> getCommandPlatforms() {
-			return platforms;
 		}
 
 		public void setLogger(Logger logger) {

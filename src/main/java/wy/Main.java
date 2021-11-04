@@ -25,14 +25,14 @@ import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.core.Content.Type;
 import jbuildstore.core.Key;
-import jbuildstore.util.ByteRepository;
+import jbuildstore.util.HashMapStore;
 import jbuildstore.util.DirectoryStore;
 import jbuildstore.util.ZipFile;
+import jcmdarg.core.Command;
 import wy.cfg.*;
 import wy.cfg.Configuration.Schema;
 import wy.commands.*;
-import wy.lang.Command;
-import wy.lang.Package;
+import wy.lang.Environment;
 import wy.lang.Plugin;
 import wy.lang.Syntactic;
 import wy.util.Logger;
@@ -46,123 +46,11 @@ import wy.util.Logger;
  * @author David J. Pearce
  *
  */
-public class Main implements Command.Environment {
-	/**
-	 * Trie to the dependency repository within the global root.
-	 */
-	public static final Trie DEFAULT_REPOSITORY_PATH = Trie.fromString("repository");
+public class Main {
 
-	public static final Command.Descriptor[] DEFAULT_COMMANDS = {
-			HelpCmd.DESCRIPTOR, //
-			BuildCmd.DESCRIPTOR, //
-			CleanCmd.DESCRIPTOR
-	};
+	public static final Command.Descriptor<Main, Boolean>[] DEFAULT_COMMANDS = new Command.Descriptor[] {
+			BuildCmd.DESCRIPTOR };
 
-	// ========================================================================
-	// Instance Fields
-	// ========================================================================
-	private Logger logger = Logger.NULL;
-	private Build.Meter meter = Build.NULL_METER;
-	/**
-	 * Plugin environment provides access to information sourced from the plugins, such as available
-	 * content-types, commands, etc.
-	 */
-	private final Plugin.Environment env;
-	/**
-	 * The main repository for storing build artifacts and source files which is properly versioned.
-	 */
-	private final Build.Repository repository;
-	/**
-	 * The working directoring where build artifacts are projected, etc.
-	 */
-	private final Content.Store workingRoot;
-	/**
-	 *
-	 */
-	private final Schema localSchema;
-
-	public Main(Plugin.Environment env, Iterable<Build.Artifact> entries, Content.Store workingRoot, Content.Store packageRepository)
-			throws IOException {
-		this.env = env;
-		this.repository = new ByteRepository(env, entries);
-		this.workingRoot = workingRoot;
-		this.localSchema = constructSchema();
-		// Setup package resolver
-	}
-
-	@Override
-	public List<Command.Descriptor> getCommandDescriptors() {
-		return env.getCommandDescriptors();
-	}
-
-	@Override
-	public List<Command.Platform> getCommandPlatforms() {
-		return env.getCommandPlatforms();
-	}
-
-	@Override
-	public Content.Store<Trie,Artifact> getWorkspaceRoot() {
-		return workingRoot;
-	}
-
-	@Override
-	public Build.Repository getRepository() {
-		return repository;
-	}
-
-	@Override
-	public Configuration get(Trie path) {
-		ArrayList<Configuration> files = new ArrayList<>();
-		// Pull out all configuration files upto the root
-		while (path != null) {
-			ConfigFile cf = repository.get(ConfigFile.ContentType, path.append("wy"));
-			if (cf != null) {
-				Configuration c = cf.toConfiguration(localSchema, false);
-				files.add(c);
-			}
-			path = path.parent();
-		}
-		// Construct the combinator
-		return new ConfigurationCombinator(files.toArray(new Configuration[files.size()]));
-	}
-
-	@Override
-	public Build.Meter getMeter() {
-		return meter;
-	}
-
-	@Override
-	public Logger getLogger() {
-		return logger;
-	}
-
-	public void setLogger(Logger logger) {
-		this.logger = logger;
-		this.env.setLogger(logger);
-	}
-
-	public void setMeter(Build.Meter meter) {
-		this.meter = meter;
-	}
-
-	private Schema constructSchema() {
-		List<Command.Platform> buildPlatforms = getCommandPlatforms();
-		List<Command.Descriptor> cmdDescriptors = getCommandDescriptors();
-
-		Configuration.Schema[] schemas = new Configuration.Schema[buildPlatforms.size() + cmdDescriptors.size() + 1];
-		int index = 0;
-		schemas[index++] = Schemas.PACKAGE;
-		for (int i = 0; i != buildPlatforms.size(); ++i) {
-			Command.Platform platform = buildPlatforms.get(i);
-			schemas[index++] = platform.getConfigurationSchema();
-		}
-		for (int i = 0; i != cmdDescriptors.size(); ++i) {
-			Command.Descriptor cmd = cmdDescriptors.get(i);
-			schemas[index++] = cmd.getConfigurationSchema();
-		}
-		// Construct combined schema
-		return Configuration.toCombinedSchema(schemas);
-	}
 
 	// ==================================================================
 	// Main Method
@@ -170,7 +58,7 @@ public class Main implements Command.Environment {
 
 	public static void main(String[] args) throws Exception {
 		Logger logger = BOOT_LOGGER;
-		Key.EncoderDecoder<Trie, Content, String> encdec = null;
+		Key.EncoderDecoder<Trie, Content, String> registry = null;
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
 		DirectoryStore<Trie, Content> SystemDir = determineSystemRoot();
@@ -180,18 +68,12 @@ public class Main implements Command.Environment {
 		Plugin.Environment penv = activatePlugins(system, logger);
 		// Register content type for configuration files
 		penv.register(Content.Type.class, ConfigFile.ContentType);
-		// Determine user-wide directory
-		DirectoryStore<Trie, Content> globalDir = determineGlobalRoot(logger);
-		// Identify repository
-		Content.Store<Trie,Content> repositoryDir = globalDir.subroot(DEFAULT_REPOSITORY_PATH);
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
 		Trie path = lrp.second();
-		// Construct build directory
-		File buildDir = determineBuildDirectory(localDir, logger);
-		// Construct workding directory
-		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(encdec, localDir);
+		// Construct working directory
+		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(registry, localDir);
 		// Extract build artifacts
 		List<Build.Artifact> artifacts = new ArrayList<>();
 		for (Content content : workingDir) {
@@ -200,37 +82,24 @@ public class Main implements Command.Environment {
 			}
 		}
 		// Construct command environment!
-		Main menv = new Main(penv, artifacts, workingDir, repositoryDir);
+		Environment env = new Environment(penv, artifacts, workingDir);
 		// Execute the given command
-		int exitCode = exec(menv, path, args);
+		int exitCode = exec(env, path, args);
 		// Done
 		System.exit(exitCode);
 	}
 
-	public static int exec(Main menv, Trie path, String[] args) {
-		// Add default descriptors
-		menv.getCommandDescriptors().addAll(Arrays.asList(DEFAULT_COMMANDS));
-		// Construct environment and execute arguments
-		Command.Descriptor descriptor = wy.commands.Root.DESCRIPTOR(menv.getCommandDescriptors());
-		// Parse the given command-line
-		Command.Template template = new CommandParser(descriptor).parse(args);
-		// Apply verbose setting
-		boolean verbose = template.getOptions().get("verbose", Boolean.class);
-		int profile = template.getOptions().get("profile", Integer.class);
-		if(verbose || profile > 0) {
-			// Configure environment
-			menv.setLogger(BOOT_LOGGER);
-			menv.setMeter(new Meter("Build", BOOT_LOGGER, profile));
-		}
+	public static int exec(Environment env, Trie path, String[] _args) {
+		boolean verbose = false;
+		// Parse command-line arguments
+		Command.Arguments<Environment, Boolean> args = Command.parse(DESCRIPTOR, _args);
 		// Done
 		try {
-			// Create command instance
-			Command instance = descriptor.initialise(menv);
-			// Execute command
-			boolean ec = instance.execute(path,template);
+			// Initialise command and execute it!
+			Boolean b = args.initialise(env).execute();
 			// Done
-			return ec ? 0 : 1;
-		} catch(Syntactic.Exception e) {
+			return b ? 0 : 1;
+		} catch (Syntactic.Exception e) {
 			e.outputSourceError(System.err, false);
 			if (verbose) {
 				printStackTrace(System.err, e);
@@ -238,7 +107,7 @@ public class Main implements Command.Environment {
 			return 1;
 		} catch (Exception e) {
 			System.err.println("Internal failure: " + e.getMessage());
-			if(verbose) {
+			if (verbose) {
 				e.printStackTrace();
 			}
 			return 2;
@@ -264,42 +133,6 @@ public class Main implements Command.Environment {
 			System.exit(-1);
 		}
 		return new DirectoryStore<>(BOOT_REGISTRY, new File(whileyhome));
-	}
-
-	/**
-	 * Determine the global root. That is, the hidden whiley directory in the user's
-	 * home directory (e.g. ~/.whiley).
-	 *
-	 * @param tool
-	 * @return
-	 * @throws IOException
-	 */
-	private static DirectoryStore<Trie, Content> determineGlobalRoot(Logger logger)
-			throws IOException {
-		String userhome = System.getProperty("user.home");
-		File whileydir = new File(userhome + File.separator + ".whiley");
-		if (!whileydir.exists()) {
-			logger.logTimedMessage("mkdir " + whileydir.toString(), 0, 0);
-			whileydir.mkdirs();
-		}
-		return new DirectoryStore<>(BOOT_REGISTRY, whileydir);
-	}
-
-	/**
-	 * Determine the build root. That is, the hidden whiley directory at the top-level of the build system.
-	 *
-	 * @param dir root path of the build system we are in.
-	 * @return
-	 * @throws IOException
-	 */
-	private static File determineBuildDirectory(File dir, Logger logger) throws IOException {
-		File whileydir = new File(dir + File.separator + ".whiley");
-		if (!whileydir.exists()) {
-			logger.logTimedMessage("mkdir " + whileydir.toString(), 0, 0);
-			whileydir.mkdirs();
-		}
-		// NOTE: should not be a file repository!
-		return whileydir;
 	}
 
 	/**
@@ -414,8 +247,7 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Configuration readConfigFile(
-			DirectoryStore<Trie, Content> root, Trie id, Logger logger,
+	public static Configuration readConfigFile(DirectoryStore<Trie, Content> root, Trie id, Logger logger,
 			Configuration.Schema... schemas) throws IOException {
 		// Combine schemas together
 		Configuration.Schema schema = Configuration.toCombinedSchema(schemas);
@@ -448,61 +280,6 @@ public class Main implements Command.Environment {
 		if (err.getCause() != null) {
 			out.print("Caused by: ");
 			printStackTrace(out, err.getCause());
-		}
-	}
-
-
-	public static class Meter implements Build.Meter {
-		private final String name;
-		private final Logger logger;
-		private final int depth;
-		private Meter parent;
-		private final long time;
-		private final long memory;
-		private final Map<String,Integer> counts;
-
-		public Meter(String name, Logger logger, int depth) {
-			this.name = name;
-			this.logger = logger;
-			this.depth = depth;
-			this.parent = null;
-			this.time = System.currentTimeMillis();
-			this.memory = Runtime.getRuntime().freeMemory();
-			this.counts = new HashMap<>();
-		}
-
-		@Override
-		public Build.Meter fork(String name) {
-			if(depth > 0) {
-				Meter r = new Meter(name,logger,depth-1);
-				r.parent = this;
-				return r;
-			} else {
-				return jbuildgraph.core.Build.NULL_METER;
-			}
-		}
-
-		@Override
-		public void step(String tag) {
-			Integer i = counts.get(tag);
-			if (i == null) {
-				i = 1;
-			} else {
-				i = i + 1;
-			}
-			counts.put(tag, i);
-		}
-
-		@Override
-		public void done() {
-			long t = System.currentTimeMillis();
-			long m = Runtime.getRuntime().freeMemory();
-			logger.logTimedMessage(name, t - time, m - memory);
-			ArrayList<String> keys = new ArrayList<>(counts.keySet());
-			Collections.sort(keys);
-			for(String key : keys) {
-				logger.logTimedMessage(name + "@" + key + "(" + counts.get(key) + " steps)", 0, 0);
-			}
 		}
 	}
 }
