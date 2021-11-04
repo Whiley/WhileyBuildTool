@@ -3,9 +3,9 @@ package basic;
 import java.io.IOException;
 import java.util.List;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.util.Trie;
+import jbuildsled.core.Build;
+import jbuildsled.core.Content;
+import jbuildsled.util.Trie;
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;
 import wy.lang.Command;

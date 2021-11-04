@@ -19,7 +19,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
 import wy.cfg.ConfigFile.*;
 import wy.cfg.ConfigFileLexer.Token;
 

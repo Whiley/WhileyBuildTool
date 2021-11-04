@@ -23,15 +23,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.core.SourceFile;
-import jbfs.core.Build.Artifact;
-import jbfs.core.Build.Repository;
-import jbfs.core.Build.SnapShot;
-import jbfs.util.Pair;
-import jbfs.util.Transactions;
-import jbfs.util.Trie;
+import jbuildgraph.core.Build;
+import jbuildgraph.core.SourceFile;
+import jbuildgraph.core.Build.Artifact;
+import jbuildgraph.core.Build.Repository;
+import jbuildgraph.core.Build.SnapShot;
+import jbuildgraph.util.Pair;
+import jbuildgraph.util.Transactions;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;
 import wy.lang.Command;
@@ -128,7 +128,7 @@ public class BuildCmd implements Command {
 	@Override
 	public boolean execute(Trie path, Template template) throws Exception {
 		// Access workspace root
-		Content.Root workspace = environment.getWorkspaceRoot();
+		Content.Store<Trie, Artifact> workspace = environment.getWorkspaceRoot();
 		// Extract configuration for this path
 		Repository repository = environment.getRepository();
 		// Construct pipeline

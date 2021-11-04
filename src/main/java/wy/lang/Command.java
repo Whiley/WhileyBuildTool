@@ -17,11 +17,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.core.Build.Meter;
-import jbfs.core.Build.Repository;
-import jbfs.util.Trie;
+import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.Meter;
+import jbuildgraph.core.Build.Repository;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
 import wy.cfg.Configuration;
 import wy.util.Logger;
 
@@ -81,13 +81,6 @@ public interface Command {
 		Package.Resolver getPackageResolver();
 
 		/**
-		 * Get the registry used for resolving content types in this environment.
-		 *
-		 * @return
-		 */
-		Content.Registry getContentRegistry();
-
-		/**
 		 * Get the set of build platforms which are active in this environment.
 		 *
 		 * @return
@@ -107,7 +100,7 @@ public interface Command {
 		 *
 		 * @return
 		 */
-		Content.Root getWorkspaceRoot();
+		Content.Store getWorkspaceRoot();
 
 		/**
 		 * Get the configuration associated with a given build path.  The key is that the configuration at a given path

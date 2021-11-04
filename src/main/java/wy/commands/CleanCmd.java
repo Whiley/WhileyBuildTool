@@ -17,9 +17,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.util.Trie;
+import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.Artifact;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
+import jbuildstore.core.Content.Store;
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;
 import wy.lang.Command;
@@ -104,7 +106,7 @@ public class CleanCmd implements Command {
 	@Override
 	public boolean execute(Trie path, Template template) throws Exception {
 		// Access workspace root
-		Content.Root workspace = environment.getWorkspaceRoot();
+		Store<Trie,Artifact> workspace = environment.getWorkspaceRoot();
 		// Extract options
 		boolean verbose = template.getOptions().get("verbose", Boolean.class);
 		// Construct the build plan

@@ -17,8 +17,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import jbfs.core.Content;
-import jbfs.util.ZipFile;
+import jbuildgraph.core.Build.Artifact;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
+import jbuildstore.core.Content.Source;
+import jbuildstore.util.ZipFile;
 import wy.cfg.Configuration;
 
 public interface Package {
@@ -38,7 +41,7 @@ public interface Package {
 		 * @param version
 		 * @return
 		 */
-		List<Content.Source> resolve(Configuration cf) throws IOException;
+		List<Source<Trie,Artifact>> resolve(Configuration cf) throws IOException;
 
 		/**
 		 * Get the root repository associated with this package resolver.
@@ -80,7 +83,7 @@ public interface Package {
 		 * @param version
 		 * @return
 		 */
-		public ZipFile get(String name, Semantic.Version version) throws IOException;
+		public ZipFile<Trie, Artifact> get(String name, Semantic.Version version) throws IOException;
 
 		/**
 		 * Put a given package into this repository.

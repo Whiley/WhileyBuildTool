@@ -18,13 +18,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.util.ByteRepository;
-import jbfs.util.DirectoryRoot;
-import jbfs.util.Pair;
-import jbfs.util.Trie;
-import jbfs.util.ZipFile;
+import jbuildgraph.core.Build;
+import jbuildgraph.util.Pair;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
+import jbuildstore.util.ByteRepository;
+import jbuildstore.util.DirectoryStore;
+import jbuildstore.util.ZipFile;
 import wy.cfg.*;
 import wy.cfg.Configuration.Schema;
 import wy.commands.*;
@@ -32,11 +32,7 @@ import wy.lang.Command;
 import wy.lang.Package;
 import wy.lang.Plugin;
 import wy.lang.Syntactic;
-import wy.util.CommandParser;
-import wy.util.LocalPackageRepository;
 import wy.util.Logger;
-import wy.util.RemotePackageRepository;
-import wy.util.StdPackageResolver;
 
 /**
  * Provides a command-line interface to the Whiley Compiler Collection. This is
@@ -65,11 +61,6 @@ public class Main implements Command.Environment {
 	private Logger logger = Logger.NULL;
 	private Build.Meter meter = Build.NULL_METER;
 	/**
-	 * Package resolver is reponsible for resolving packages in remote repositories and caching them in the
-	 * global repository.
-	 */
-	private final Package.Resolver resolver;
-	/**
 	 * Plugin environment provides access to information sourced from the plugins, such as available
 	 * content-types, commands, etc.
 	 */
@@ -81,20 +72,19 @@ public class Main implements Command.Environment {
 	/**
 	 * The working directoring where build artifacts are projected, etc.
 	 */
-	private final Content.Root workingRoot;
+	private final Content.Store workingRoot;
 	/**
 	 *
 	 */
 	private final Schema localSchema;
 
-	public Main(Plugin.Environment env, Iterable<Build.Artifact> entries, Content.Root workingRoot, Content.Root packageRepository)
+	public Main(Plugin.Environment env, Iterable<Build.Artifact> entries, Content.Store workingRoot, Content.Store packageRepository)
 			throws IOException {
 		this.env = env;
 		this.repository = new ByteRepository(env, entries);
 		this.workingRoot = workingRoot;
 		this.localSchema = constructSchema();
 		// Setup package resolver
-		this.resolver = new StdPackageResolver(this, new RemotePackageRepository(this, packageRepository));
 	}
 
 	@Override
@@ -108,18 +98,13 @@ public class Main implements Command.Environment {
 	}
 
 	@Override
-	public Content.Root getWorkspaceRoot() {
+	public Content.Store getWorkspaceRoot() {
 		return workingRoot;
 	}
 
 	@Override
 	public Package.Resolver getPackageResolver() {
 		return resolver;
-	}
-
-	@Override
-	public Content.Registry getContentRegistry() {
-		return env;
 	}
 
 	@Override
@@ -189,7 +174,7 @@ public class Main implements Command.Environment {
 		Logger logger = BOOT_LOGGER;
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
-		DirectoryRoot SystemDir = determineSystemRoot();
+		DirectoryStore SystemDir = determineSystemRoot();
 		// Read the system configuration file
 		Configuration system = readConfigFile(SystemDir, Trie.fromString("wy"), logger, Schemas.SYSTEM_CONFIG_SCHEMA);
 		// Construct plugin environment and activate plugins
@@ -198,9 +183,9 @@ public class Main implements Command.Environment {
 		penv.register(Content.Type.class, ConfigFile.ContentType);
 		penv.register(Content.Type.class, ZipFile.ContentType);
 		// Determine user-wide directory
-		DirectoryRoot globalDir = determineGlobalRoot(logger, penv);
+		DirectoryStore globalDir = determineGlobalRoot(logger, penv);
 		// Identify repository
-		Content.Root repositoryDir = globalDir.subroot(DEFAULT_REPOSITORY_PATH);
+		Content.Store repositoryDir = globalDir.subroot(DEFAULT_REPOSITORY_PATH);
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
@@ -208,7 +193,7 @@ public class Main implements Command.Environment {
 		// Construct build directory
 		File buildDir = determineBuildDirectory(localDir, logger);
 		// Construct workding directory
-		DirectoryRoot workingDir = new DirectoryRoot(penv, localDir);
+		DirectoryStore workingDir = new DirectoryStore(penv, localDir);
 		// Extract build artifacts
 		List<Build.Artifact> artifacts = new ArrayList<>();
 		for (Content content : workingDir) {
@@ -274,13 +259,13 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryRoot determineSystemRoot() throws IOException {
+	private static DirectoryStore determineSystemRoot() throws IOException {
 		String whileyhome = System.getenv("WHILEYHOME");
 		if (whileyhome == null) {
 			System.err.println("error: WHILEYHOME environment variable not set");
 			System.exit(-1);
 		}
-		return new DirectoryRoot(BOOT_REGISTRY, new File(whileyhome));
+		return new DirectoryStore(BOOT_REGISTRY, new File(whileyhome));
 	}
 
 	/**
@@ -291,14 +276,14 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryRoot determineGlobalRoot(Logger logger, Content.Registry registry) throws IOException {
+	private static DirectoryStore determineGlobalRoot(Logger logger, Content.Registry registry) throws IOException {
 		String userhome = System.getProperty("user.home");
 		File whileydir = new File(userhome + File.separator + ".whiley");
 		if (!whileydir.exists()) {
 			logger.logTimedMessage("mkdir " + whileydir.toString(), 0, 0);
 			whileydir.mkdirs();
 		}
-		return new DirectoryRoot(registry, whileydir);
+		return new DirectoryStore(registry, whileydir);
 	}
 
 	/**
@@ -414,7 +399,7 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Configuration readConfigFile(DirectoryRoot root, Trie id, Logger logger,
+	public static Configuration readConfigFile(DirectoryStore root, Trie id, Logger logger,
 			Configuration.Schema... schemas) throws IOException {
 		// Combine schemas together
 		Configuration.Schema schema = Configuration.toCombinedSchema(schemas);

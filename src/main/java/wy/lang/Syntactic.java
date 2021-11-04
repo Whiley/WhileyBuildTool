@@ -17,8 +17,8 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Predicate;
 
-import jbfs.core.Build;
-import jbfs.util.Trie;
+import jbuildgraph.core.Build;
+import jbuildgraph.util.Trie;
 
 public class Syntactic {
 	/**
@@ -34,7 +34,7 @@ public class Syntactic {
 			throw new IllegalArgumentException();
 		}
 	}
-	
+
 	/**
 	 * A syntactic heap represents a collection of syntactic items.
 	 *
@@ -61,27 +61,27 @@ public class Syntactic {
 
 		/**
 		 * Find first heap item matching the given constraint.
-		 * 
+		 *
 		 * @param <T>
 		 * @param kind
 		 * @param where
 		 * @return
 		 */
 		public <T extends SyntacticItem> T match(Class<T> kind, Predicate<SyntacticItem> where);
-		
+
 		/**
 		 * Match all heap items matching the given constraint.
-		 * 
+		 *
 		 * @param <T>
 		 * @param kind
 		 * @param where
 		 * @return
 		 */
 		public <T extends SyntacticItem> List<T> matchAll(Class<T> kind, Predicate<SyntacticItem> where);
-	
+
 		/**
 		 * Get an associated attribute map with this syntactic heap.
-		 * 
+		 *
 		 * @param <T>
 		 * @param <S>
 		 * @param kind
@@ -94,7 +94,7 @@ public class Syntactic {
 
 		/**
 		 * Get the opcode associated with this item.
-		 * 
+		 *
 		 * @return
 		 */
 		public int getOpcode();
@@ -183,7 +183,7 @@ public class Syntactic {
 		 */
 		public Trie getSource();
 	}
-	
+
 	/**
 	 * A span associates a given syntactic item with a contiguous region of text in
 	 * the original source file.
@@ -196,9 +196,9 @@ public class Syntactic {
 
 		public int getEnd();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @author djp
 	 *
 	 * @param <T>

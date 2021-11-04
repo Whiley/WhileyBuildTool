@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import jbfs.core.Build.Artifact;
-import jbfs.core.Content;
-import jbfs.util.Trie;
+import jbuildsled.core.Content;
+import jbuildsled.core.Build.Artifact;
+import jbuildsled.util.Trie;
 
 public class SourceFile extends jbfs.core.SourceFile {
 	public static Content.Type<SourceFile> ContentType = new Content.Type<>() {

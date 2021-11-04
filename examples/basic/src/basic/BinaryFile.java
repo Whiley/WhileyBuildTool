@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jbfs.core.Build;
-import jbfs.core.Build.Artifact;
-import jbfs.core.Content;
-import jbfs.util.Trie;
+import jbuildsled.core.Build;
+import jbuildsled.core.Content;
+import jbuildsled.core.Build.Artifact;
+import jbuildsled.util.Trie;
 
 public class BinaryFile implements Build.Artifact {
 

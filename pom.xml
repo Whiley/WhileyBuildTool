@@ -51,8 +51,13 @@
   <dependencies>
      <dependency>
       <groupId>org.whiley</groupId>
-      <artifactId>jbuildfs</artifactId>
-      <version>1.0.1</version>
+      <artifactId>jbuildgraph</artifactId>
+      <version>0.1.0</version>
+     </dependency>    
+     <dependency>
+      <groupId>org.whiley</groupId>
+      <artifactId>jbuildstore</artifactId>
+      <version>0.1.0</version>
      </dependency>
      <dependency>
     	<groupId>org.apache.httpcomponents</groupId>

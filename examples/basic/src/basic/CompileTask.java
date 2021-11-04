@@ -7,9 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import basic.BinaryFile.Stmt;
-import jbfs.core.Build;
-import jbfs.util.Pair;
-import jbfs.util.Trie;
+import jbuildsled.core.Build;
+import jbuildsled.util.Pair;
+import jbuildsled.util.Trie;
 
 public class CompileTask implements Build.Task {
 	private static final Pattern LINE_MATCH = Pattern.compile("[a-zA-Z0-9/\\\\_.:]+");

@@ -16,7 +16,7 @@ package wy.cfg;
 import java.util.ArrayList;
 import java.util.List;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
 
 /**
  * Combines one or more configurations into a single configuration. The

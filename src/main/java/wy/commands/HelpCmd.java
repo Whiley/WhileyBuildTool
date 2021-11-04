@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
 import wy.cfg.Configuration;
 import wy.lang.Command;
 
