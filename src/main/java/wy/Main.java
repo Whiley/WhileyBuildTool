@@ -19,9 +19,12 @@ import java.io.PrintStream;
 import java.util.*;
 
 import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.core.Content.Type;
+import jbuildstore.core.Key;
 import jbuildstore.util.ByteRepository;
 import jbuildstore.util.DirectoryStore;
 import jbuildstore.util.ZipFile;
@@ -98,13 +101,8 @@ public class Main implements Command.Environment {
 	}
 
 	@Override
-	public Content.Store getWorkspaceRoot() {
+	public Content.Store<Trie,Artifact> getWorkspaceRoot() {
 		return workingRoot;
-	}
-
-	@Override
-	public Package.Resolver getPackageResolver() {
-		return resolver;
 	}
 
 	@Override
@@ -172,20 +170,20 @@ public class Main implements Command.Environment {
 
 	public static void main(String[] args) throws Exception {
 		Logger logger = BOOT_LOGGER;
+		Key.EncoderDecoder<Trie, Content, String> encdec = null;
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
-		DirectoryStore SystemDir = determineSystemRoot();
+		DirectoryStore<Trie, Content> SystemDir = determineSystemRoot();
 		// Read the system configuration file
 		Configuration system = readConfigFile(SystemDir, Trie.fromString("wy"), logger, Schemas.SYSTEM_CONFIG_SCHEMA);
 		// Construct plugin environment and activate plugins
 		Plugin.Environment penv = activatePlugins(system, logger);
 		// Register content type for configuration files
 		penv.register(Content.Type.class, ConfigFile.ContentType);
-		penv.register(Content.Type.class, ZipFile.ContentType);
 		// Determine user-wide directory
-		DirectoryStore globalDir = determineGlobalRoot(logger, penv);
+		DirectoryStore<Trie, Content> globalDir = determineGlobalRoot(logger);
 		// Identify repository
-		Content.Store repositoryDir = globalDir.subroot(DEFAULT_REPOSITORY_PATH);
+		Content.Store<Trie,Content> repositoryDir = globalDir.subroot(DEFAULT_REPOSITORY_PATH);
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
@@ -193,7 +191,7 @@ public class Main implements Command.Environment {
 		// Construct build directory
 		File buildDir = determineBuildDirectory(localDir, logger);
 		// Construct workding directory
-		DirectoryStore workingDir = new DirectoryStore(penv, localDir);
+		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(encdec, localDir);
 		// Extract build artifacts
 		List<Build.Artifact> artifacts = new ArrayList<>();
 		for (Content content : workingDir) {
@@ -259,13 +257,13 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryStore determineSystemRoot() throws IOException {
+	private static DirectoryStore<Trie, Content> determineSystemRoot() throws IOException {
 		String whileyhome = System.getenv("WHILEYHOME");
 		if (whileyhome == null) {
 			System.err.println("error: WHILEYHOME environment variable not set");
 			System.exit(-1);
 		}
-		return new DirectoryStore(BOOT_REGISTRY, new File(whileyhome));
+		return new DirectoryStore<>(BOOT_REGISTRY, new File(whileyhome));
 	}
 
 	/**
@@ -276,14 +274,15 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryStore determineGlobalRoot(Logger logger, Content.Registry registry) throws IOException {
+	private static DirectoryStore<Trie, Content> determineGlobalRoot(Logger logger)
+			throws IOException {
 		String userhome = System.getProperty("user.home");
 		File whileydir = new File(userhome + File.separator + ".whiley");
 		if (!whileydir.exists()) {
 			logger.logTimedMessage("mkdir " + whileydir.toString(), 0, 0);
 			whileydir.mkdirs();
 		}
-		return new DirectoryStore(registry, whileydir);
+		return new DirectoryStore<>(BOOT_REGISTRY, whileydir);
 	}
 
 	/**
@@ -383,8 +382,24 @@ public class Main implements Command.Environment {
 	 * Used for reading the various configuration files prior to instantiating the
 	 * main tool itself.
 	 */
-	public static Content.Registry BOOT_REGISTRY = new Content.DefaultRegistry()
-			.register(ConfigFile.ContentType, "toml").register(ZipFile.ContentType, "zip");
+	public static Key.EncoderDecoder<Trie, Content, String> BOOT_REGISTRY = new Key.EncoderDecoder<>() {
+
+		@Override
+		public String encode(Type<? extends Content> type, Trie key) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Trie decodeKey(String t) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Type<Content> decodeType(String t) {
+			throw new UnsupportedOperationException();
+		}
+
+	};
 
 	/**
 	 * Simple default logger
@@ -399,7 +414,8 @@ public class Main implements Command.Environment {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Configuration readConfigFile(DirectoryStore root, Trie id, Logger logger,
+	public static Configuration readConfigFile(
+			DirectoryStore<Trie, Content> root, Trie id, Logger logger,
 			Configuration.Schema... schemas) throws IOException {
 		// Combine schemas together
 		Configuration.Schema schema = Configuration.toCombinedSchema(schemas);
@@ -462,7 +478,7 @@ public class Main implements Command.Environment {
 				r.parent = this;
 				return r;
 			} else {
-				return jbfs.core.Build.NULL_METER;
+				return jbuildgraph.core.Build.NULL_METER;
 			}
 		}
 

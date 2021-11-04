@@ -20,7 +20,6 @@ import java.util.List;
 import jbuildgraph.core.Build;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
-import jbuildstore.core.Content;
 import jbuildstore.core.Content.Store;
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;

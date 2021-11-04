@@ -18,17 +18,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import jbuildgraph.core.Build;
 import jbuildstore.core.Content;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 
-public class ConfigFile implements Build.Artifact {
+public class ConfigFile implements Content {
 	// =========================================================================
 	// Content Type
 	// =========================================================================
@@ -37,7 +35,7 @@ public class ConfigFile implements Build.Artifact {
 		@Override
 		public ConfigFile read(InputStream input) throws IOException {
 			ConfigFileLexer lexer = new ConfigFileLexer(input);
-			ConfigFileParser parser = new ConfigFileParser(null, lexer.scan());
+			ConfigFileParser parser = new ConfigFileParser(lexer.scan());
 			return parser.read();
 		}
 
@@ -54,35 +52,19 @@ public class ConfigFile implements Build.Artifact {
 	};
 
 	// =========================================================================
-	// Node kinds
-	// =========================================================================
-
-	public static final int DECL_mask = 0b00010000;
-	public static final int DECL_section = DECL_mask + 0;
-	public static final int DECL_keyvalue = DECL_mask + 1;
-
-	// =========================================================================
 	// Constructors
 	// =========================================================================
-	private final Trie path;
 	/**
 	 * The list of declarations which make up this configuration.
 	 */
 	private ArrayList<Declaration> declarations;
 
-	public ConfigFile(Trie path) {
+	public ConfigFile() {
 		this.declarations = new ArrayList<>();
-		this.path = path;
 	}
 
-	public ConfigFile(Trie path, Collection<Declaration> declarations) {
+	public ConfigFile(Collection<Declaration> declarations) {
 		this.declarations = new ArrayList<>(declarations);
-		this.path = path;
-	}
-
-	@Override
-	public Trie getPath() {
-		return path;
 	}
 
 	@Override
@@ -90,10 +72,6 @@ public class ConfigFile implements Build.Artifact {
 		return ConfigFile.ContentType;
 	}
 
-	@Override
-	public List<? extends Build.Artifact> getSourceArtifacts() {
-		return Collections.EMPTY_LIST;
-	}
 
 	public static interface Declaration {
 

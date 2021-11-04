@@ -19,7 +19,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import jbuildgraph.util.Trie;
 import wy.cfg.ConfigFile.*;
 import wy.cfg.ConfigFileLexer.Token;
 
@@ -35,9 +34,9 @@ public class ConfigFileParser {
 	private final ArrayList<Token> tokens;
 	private int index;
 
-	public ConfigFileParser(Trie id, List<Token> tokens) {
+	public ConfigFileParser(List<Token> tokens) {
 		this.tokens = new ArrayList<>(tokens);
-		this.file = new ConfigFile(id);
+		this.file = new ConfigFile();
 	}
 
 	/**
