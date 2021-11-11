@@ -54,8 +54,8 @@ public class BuildCmd implements Command<Boolean> {
 
 		@Override
 		public List<Option.Descriptor> getOptionDescriptors() {
-			return Arrays.asList(Options.OPTION_FLAG("verbose", "generate verbose information about the build", false),
-					Options.OPTION_FLAG("brief", "generate brief output for syntax errors", false));
+			return Arrays.asList(Options.FLAG("verbose", "generate verbose information about the build", false),
+					Options.FLAG("brief", "generate brief output for syntax errors", false));
 		}
 
 		@Override

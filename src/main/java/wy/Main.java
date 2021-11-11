@@ -29,6 +29,9 @@ import jbuildstore.util.HashMapStore;
 import jbuildstore.util.DirectoryStore;
 import jbuildstore.util.ZipFile;
 import jcmdarg.core.Command;
+import jcmdarg.core.Command.Arguments;
+import jcmdarg.core.Option;
+import jcmdarg.util.Options;
 import wy.cfg.*;
 import wy.cfg.Configuration.Schema;
 import wy.commands.*;
@@ -36,6 +39,7 @@ import wy.lang.Environment;
 import wy.lang.Plugin;
 import wy.lang.Syntactic;
 import wy.util.Logger;
+import wy.util.SuffixRegistry;
 
 /**
  * Provides a command-line interface to the Whiley Compiler Collection. This is
@@ -48,9 +52,41 @@ import wy.util.Logger;
  */
 public class Main {
 
-	public static final Command.Descriptor<Main, Boolean>[] DEFAULT_COMMANDS = new Command.Descriptor[] {
+	@SuppressWarnings("unchecked")
+	public static final Command.Descriptor<Environment, Boolean>[] DEFAULT_COMMANDS = new Command.Descriptor[] {
 			BuildCmd.DESCRIPTOR };
 
+	/**
+	 * Root descriptor for the tool.
+	 */
+	public static final Command.Descriptor<Environment, Boolean> DESCRIPTOR = new Command.Descriptor<>() {
+
+		public List<Option.Descriptor> getOptionDescriptors() {
+			return Arrays.asList(
+					Options.FLAG("verbose", "generate verbose information about the build", false),
+					Options.FLAG("brief", "generate brief output for syntax errors", false));
+		}
+
+		public String getName() {
+			return null;
+		}
+
+		public String getDescription() {
+			return "The Whiley Build Tool";
+		}
+
+		public List<Command.Descriptor<Environment, Boolean>> getCommands() {
+			return Arrays.asList(DEFAULT_COMMANDS);
+		}
+
+		public Command<Boolean> initialise(Environment env) {
+			return () -> true;
+		}
+
+		public Environment apply(Arguments<Environment, Boolean> args, Environment env) {
+			return env;
+		}
+	};
 
 	// ==================================================================
 	// Main Method
@@ -58,7 +94,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		Logger logger = BOOT_LOGGER;
-		Key.EncoderDecoder<Trie, Content, String> registry = null;
+		SuffixRegistry<Content> registry = new SuffixRegistry<>();
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
 		DirectoryStore<Trie, Content> SystemDir = determineSystemRoot();
@@ -66,8 +102,10 @@ public class Main {
 		Configuration system = readConfigFile(SystemDir, Trie.fromString("wy"), logger, Schemas.SYSTEM_CONFIG_SCHEMA);
 		// Construct plugin environment and activate plugins
 		Plugin.Environment penv = activatePlugins(system, logger);
+		// Register all content types defined by plugins
+		registry.addAll(penv.getContentTypes());
 		// Register content type for configuration files
-		penv.register(Content.Type.class, ConfigFile.ContentType);
+		registry.add(ConfigFile.ContentType);
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
@@ -90,9 +128,10 @@ public class Main {
 	}
 
 	public static int exec(Environment env, Trie path, String[] _args) {
-		boolean verbose = false;
 		// Parse command-line arguments
 		Command.Arguments<Environment, Boolean> args = Command.parse(DESCRIPTOR, _args);
+		// Extract top-level arguments (if any)
+		boolean verbose = args.getOptions().get(Boolean.class, "verbose");
 		// Done
 		try {
 			// Initialise command and execute it!
@@ -148,7 +187,7 @@ public class Main {
 		// Search for inner configuration.
 		File inner = findConfigFile(new File("."));
 		if (inner == null) {
-			throw new IllegalArgumentException("unable to find build configuration (\"wy.toml\")");
+			return new Pair<>(new File("."), Trie.ROOT);
 		}
 		// Search for enclosing configuration (if applicable).
 		File outer = findConfigFile(inner.getParentFile());
@@ -215,23 +254,10 @@ public class Main {
 	 * Used for reading the various configuration files prior to instantiating the
 	 * main tool itself.
 	 */
-	public static Key.EncoderDecoder<Trie, Content, String> BOOT_REGISTRY = new Key.EncoderDecoder<>() {
-
-		@Override
-		public String encode(Type<? extends Content> type, Trie key) {
-			throw new UnsupportedOperationException();
+	public static SuffixRegistry<Content> BOOT_REGISTRY = new SuffixRegistry<>() {
+		{
+			add(ConfigFile.ContentType);
 		}
-
-		@Override
-		public Trie decodeKey(String t) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Type<Content> decodeType(String t) {
-			throw new UnsupportedOperationException();
-		}
-
 	};
 
 	/**
@@ -254,10 +280,16 @@ public class Main {
 		try {
 			// Read the configuration file
 			ConfigFile cf = root.get(ConfigFile.ContentType, id);
-			// Log the event
-			logger.logTimedMessage("Read " + root.getDirectory() + "/" + id + ".toml", 0, 0);
-			// Construct configuration according to given schema
-			return cf.toConfiguration(schema, false);
+			// Sanity check we found something
+			if (cf == null) {
+				logger.logTimedMessage("Not found " + root.getDirectory() + "/" + id + ".toml", 0, 0);
+				return Configuration.EMPTY(schema);
+			} else {
+				// Log the event
+				logger.logTimedMessage("Read " + root.getDirectory() + "/" + id + ".toml", 0, 0);
+				// Construct configuration according to given schema
+				return cf.toConfiguration(schema, false);
+			}
 		} catch (Syntactic.Exception e) {
 			e.outputSourceError(System.out, false);
 			System.exit(-1);

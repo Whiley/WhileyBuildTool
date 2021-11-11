@@ -49,6 +49,11 @@ public class ConfigFile implements Content {
 		public String toString() {
 			return "Content-Type: toml";
 		}
+
+		@Override
+		public String suffix() {
+			return "toml";
+		}
 	};
 
 	// =========================================================================

@@ -129,7 +129,7 @@ public interface Plugin {
 		/**
 		 * List of all known content types to the system.
 		 */
-		protected final ArrayList<Content.Type<?>> contentTypes = new ArrayList<>();
+		protected final ArrayList<Content.Type<? extends Content>> contentTypes = new ArrayList<>();
 
 		/**
 		 * List of all known commands registered by plugins.
@@ -142,7 +142,7 @@ public interface Plugin {
 			create(Command.Descriptor.class, p -> descriptors.add(p));
 		}
 
-		public List<Content.Type<?>> getContentTypes() {
+		public List<Content.Type<? extends Content>> getContentTypes() {
 			return contentTypes;
 		}
 

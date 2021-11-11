@@ -57,12 +57,12 @@
      <dependency>
       <groupId>org.whiley</groupId>
       <artifactId>jbuildstore</artifactId>
-      <version>0.1.0</version>
+      <version>0.1.1</version>
      </dependency>
      <dependency>
       <groupId>org.whiley</groupId>
       <artifactId>jcmdarg</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
      </dependency>     
      <dependency>
     	<groupId>org.apache.httpcomponents</groupId>
