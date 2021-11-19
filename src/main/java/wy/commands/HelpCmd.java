@@ -79,27 +79,7 @@ public class HelpCmd implements Command<Boolean> {
 
     @Override
     public Boolean execute() {
-//        //
-//        if (args.size() == 0) {
-//            printUsage();
-//        } else {
-//            // Search for the command
-//            List<Descriptor> descriptors = environment.getCommandDescriptors();
-//            //
-//            Descriptor command = null;
-//            for (Descriptor c : descriptors) {
-//                if (c.getName().equals(args.get(0))) {
-//                    command = c;
-//                    break;
-//                }
-//            }
-//            //
-//            if (command == null) {
-//                out.println("No entry for " + args.get(0));
-//            } else {
-//                print(out, command);
-//            }
-//        }
+    	printUsage();
         //
         return true;
     }
@@ -146,19 +126,19 @@ public class HelpCmd implements Command<Boolean> {
      * Print usage information to the console.
      */
     protected void printUsage() {
-//        List<Descriptor<Environment,Boolean>> descriptors = environment.getCommandDescriptors();
-//        //
-//        out.println("usage: wy [--verbose] command [<options>] [<args>]");
-//        out.println();
-//        int maxWidth = determineCommandNameWidth(descriptors);
-//        out.println("Commands:");
-//        for (Descriptor d : descriptors) {
-//            out.print("  ");
-//            out.print(rightPad(d.getName(), maxWidth));
-//            out.println("   " + d.getDescription());
-//        }
-//        out.println();
-//        out.println("Run `wy help COMMAND` for more information on a command");
+        List<Descriptor<Environment,Boolean>> descriptors = environment.getCommandDescriptors();
+        //
+        out.println("usage: wy [--verbose] command [<options>] [<args>]");
+        out.println();
+        int maxWidth = determineCommandNameWidth(descriptors);
+        out.println("Commands:");
+        for (Descriptor d : descriptors) {
+            out.print("  ");
+            out.print(rightPad(d.getName(), maxWidth));
+            out.println("   " + d.getDescription());
+        }
+        out.println();
+        out.println("Run `wy help COMMAND` for more information on a command");
     }
 
     /**

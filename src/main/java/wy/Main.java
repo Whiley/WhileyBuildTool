@@ -53,40 +53,10 @@ import wy.util.SuffixRegistry;
 public class Main {
 
 	@SuppressWarnings("unchecked")
-	public static final List<Command.Descriptor<Environment, Boolean>> commands = new ArrayList<>() {{
-		add(BuildCmd.DESCRIPTOR);
-		add(HelpCmd.DESCRIPTOR);
-	}};
-
-	/**
-	 * Root descriptor for the tool.
-	 */
-	public static final Command.Descriptor<Environment, Boolean> DESCRIPTOR = new Command.Descriptor<>() {
-
-		public List<Option.Descriptor> getOptionDescriptors() {
-			return Arrays.asList(
-					Options.FLAG("verbose", "generate verbose information about the build", false),
-					Options.FLAG("brief", "generate brief output for syntax errors", false));
-		}
-
-		public String getName() {
-			return null;
-		}
-
-		public String getDescription() {
-			return "The Whiley Build Tool";
-		}
-
-		public List<Command.Descriptor<Environment, Boolean>> getCommands() {
-			return commands;
-		}
-
-		public Command<Boolean> initialise(Environment env) {
-			return () -> true;
-		}
-
-		public Environment apply(Arguments<Environment, Boolean> args, Environment env) {
-			return env;
+	public static final List<Command.Descriptor<Environment, Boolean>> DEFAULT_COMMANDS = new ArrayList<>() {
+		{
+			add(BuildCmd.DESCRIPTOR);
+			add(HelpCmd.DESCRIPTOR);
 		}
 	};
 
@@ -109,7 +79,7 @@ public class Main {
 		// Register content type for configuration files
 		registry.add(ConfigFile.ContentType);
 		// Register all plugin commands
-		commands.addAll(penv.getCommandDescriptors());
+		penv.getCommandDescriptors().addAll(0,DEFAULT_COMMANDS);
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
@@ -132,8 +102,9 @@ public class Main {
 	}
 
 	public static int exec(Environment env, Trie path, String[] _args) {
+		Command.Descriptor<Environment, Boolean> desc = env.getRootDescriptor();
 		// Parse command-line arguments
-		Command.Arguments<Environment, Boolean> args = Command.parse(DESCRIPTOR, _args);
+		Command.Arguments<Environment, Boolean> args = Command.parse(desc, _args);
 		// Extract top-level arguments (if any)
 		boolean verbose = args.getOptions().get(Boolean.class, "verbose");
 		// Done

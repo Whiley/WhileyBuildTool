@@ -1,5 +1,13 @@
 package wy.lang;
 
+import java.util.Arrays;
+import java.util.List;
+
+import jcmdarg.core.Command;
+import jcmdarg.core.Option;
+import jcmdarg.core.Command.Arguments;
+import jcmdarg.util.Options;
+import wy.commands.RootCmd;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
@@ -12,6 +20,10 @@ public class Environment {
 	 */
 	private final Plugin.Environment env;
 	/**
+	 * Root command hierarchy for the tool.
+	 */
+	private final RootCmd root;
+	/**
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
@@ -23,6 +35,7 @@ public class Environment {
 
 	public Environment(Plugin.Environment env, Iterable<Artifact> entries, Content.Store<Trie, Content> workingRoot) {
 		this.env = env;
+		this.root = new RootCmd(env);
 		this.repository = new HashMapStore<>();
 		this.workingRoot = workingRoot;
 		// Initialise store
@@ -31,4 +44,24 @@ public class Environment {
 		}
 	}
 
+	/**
+	 * Get the list of registered commands.
+	 *
+	 * @return
+	 */
+	public List<Command.Descriptor<Environment,Boolean>> getCommandDescriptors() {
+		return env.getCommandDescriptors();
+	}
+
+	/**
+	 * Get the list of registered content types.
+	 * @return
+	 */
+	public List<Content.Type<? extends Content>> getContentTypes() {
+		return env.getContentTypes();
+	}
+
+	public Command.Descriptor<Environment, Boolean> getRootDescriptor() {
+		return root;
+	}
 }
