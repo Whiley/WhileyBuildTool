@@ -53,8 +53,10 @@ import wy.util.SuffixRegistry;
 public class Main {
 
 	@SuppressWarnings("unchecked")
-	public static final Command.Descriptor<Environment, Boolean>[] DEFAULT_COMMANDS = new Command.Descriptor[] {
-			BuildCmd.DESCRIPTOR };
+	public static final List<Command.Descriptor<Environment, Boolean>> commands = new ArrayList<>() {{
+		add(BuildCmd.DESCRIPTOR);
+		add(HelpCmd.DESCRIPTOR);
+	}};
 
 	/**
 	 * Root descriptor for the tool.
@@ -76,7 +78,7 @@ public class Main {
 		}
 
 		public List<Command.Descriptor<Environment, Boolean>> getCommands() {
-			return Arrays.asList(DEFAULT_COMMANDS);
+			return commands;
 		}
 
 		public Command<Boolean> initialise(Environment env) {
@@ -106,6 +108,8 @@ public class Main {
 		registry.addAll(penv.getContentTypes());
 		// Register content type for configuration files
 		registry.add(ConfigFile.ContentType);
+		// Register all plugin commands
+		commands.addAll(penv.getCommandDescriptors());
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();

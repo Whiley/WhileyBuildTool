@@ -1,21 +1,34 @@
+// Copyright 2021 The Whiley Project Developers
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package basic;
 
 import java.io.IOException;
 import java.util.List;
 
-import jbuildsled.core.Build;
-import jbuildsled.core.Content;
-import jbuildsled.util.Trie;
+import jcmdarg.core.Command;
+import jbuildgraph.core.Build;
+import jbuildstore.core.Content;
+import jbuildgraph.util.Trie;
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;
-import wy.lang.Command;
 import wy.lang.Plugin;
-import wy.lang.Command.Environment;
+import wy.lang.Environment;
 import wy.lang.Plugin.Context;
 
 public class Activator implements Plugin.Activator {
 
-	public static final Command.Platform BASIC_PLATFORM = new Command.Platform() {
+	public static final Command.Descriptor<String,Boolean> BASIC_PLATFORM = new Command.Descriptor<>() {
 
 		@Override
 		public String getName() {
