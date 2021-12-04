@@ -8,4 +8,7 @@ homepage = "http://whiley.org"
 repository = "https://github.com/Whiley/WhileyBuildTool"
 readme = "README.md"
 
+[[bin]]
+name = "wy"
+
 [dependencies]
