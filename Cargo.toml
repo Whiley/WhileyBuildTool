@@ -1,0 +1,11 @@
+[package]
+name = "whiley"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2018"
+description = "A command-line tool for building Whiley programs"
+homepage = "http://whiley.org"
+repository = "https://github.com/Whiley/WhileyBuildTool"
+readme = "README.md"
+
+[dependencies]
