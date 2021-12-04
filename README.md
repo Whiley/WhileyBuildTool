@@ -1,4 +1,4 @@
 # Overview
 
-The `hunk` library is designed for manipulating hunks of binary data
-in an efficient (and functional) style.
+This is a placeholder for tools relating to the Whiley programming
+language (see http://whiley.org).
