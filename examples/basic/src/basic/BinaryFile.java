@@ -7,22 +7,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jbuildsled.core.Build;
-import jbuildsled.core.Content;
-import jbuildsled.core.Build.Artifact;
-import jbuildsled.util.Trie;
+import jbuildgraph.core.Build;
+import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
+
 
 public class BinaryFile implements Build.Artifact {
 
 	public static Content.Type<BinaryFile> ContentType = new Content.Type<>() {
 
 		@Override
-		public String getSuffix() {
-			return "bil";
-		}
-
-		@Override
-		public BinaryFile read(Trie id, InputStream input, Registry registry) throws IOException {
+		public BinaryFile read(InputStream input) throws IOException {
 			throw new UnsupportedOperationException();
 		}
 
@@ -30,6 +25,12 @@ public class BinaryFile implements Build.Artifact {
 		public void write(OutputStream output, BinaryFile value) throws IOException {
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public String suffix() {
+			return "bil";
+		}
+
 
 	};
 
@@ -49,12 +50,12 @@ public class BinaryFile implements Build.Artifact {
 	}
 
 	@Override
-	public Type<? extends Artifact> getContentType() {
+	public Type<? extends Build.Artifact> getContentType() {
 		return ContentType;
 	}
 
 	@Override
-	public List<? extends Artifact> getSourceArtifacts() {
+	public List<? extends Build.Artifact> getSourceArtifacts() {
 		return Arrays.asList(source);
 	}
 

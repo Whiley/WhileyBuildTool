@@ -14,12 +14,14 @@
 package basic;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
-import jcmdarg.core.Command;
-import jbuildgraph.core.Build;
 import jbuildstore.core.Content;
-import jbuildgraph.util.Trie;
+import jcmdarg.core.Command;
+import jcmdarg.core.Command.Arguments;
+import jcmdarg.core.Option.Descriptor;
+
 import wy.cfg.Configuration;
 import wy.cfg.Configuration.Schema;
 import wy.lang.Plugin;
@@ -28,30 +30,38 @@ import wy.lang.Plugin.Context;
 
 public class Activator implements Plugin.Activator {
 
-	public static final Command.Descriptor<String,Boolean> BASIC_PLATFORM = new Command.Descriptor<>() {
+	public static final Command.Descriptor<Environment,Boolean> COMMAND = new Command.Descriptor<>() {
 
 		@Override
 		public String getName() {
-			return "basic";
+			return "hello";
 		}
 
 		@Override
-		public Schema getConfigurationSchema() {
-			return Configuration.EMPTY_SCHEMA;
+		public String getDescription() {
+			return "The simplest possible command";
 		}
 
 		@Override
-		public Build.Task initialise(Trie path, Environment environment) throws IOException {
-			// Search snapshot for all source files
-			Build.SnapShot snapshot = environment.getRepository().last();
-			Trie srcdir = Trie.fromString("src");
-			Content.Filter<SourceFile> includes = Content.Filter(SourceFile.ContentType,
-					srcdir.append(Trie.EVERYTHING));
-			List<SourceFile> files = snapshot.getAll(includes);
-			//
-			System.out.println("FOUND FILES: " + files + " FROM: " + snapshot);
-			//
-			return new CompileTask(path, files.get(0));
+		public List<Descriptor> getOptionDescriptors() {
+			return Arrays.asList();
+		}
+
+		@Override
+		public Command<Boolean> initialise(Environment env) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Environment apply(Arguments<Environment, Boolean> instance, Environment env) {
+			// No arguments are supported!
+			return env;
+		}
+
+		@Override
+		public List<Command.Descriptor<Environment, Boolean>> getCommands() {
+			// No subcommands
+			return Arrays.asList();
 		}
 
 	};
@@ -60,7 +70,7 @@ public class Activator implements Plugin.Activator {
 	public Plugin start(Context context) {
 		System.out.println("BASIC PLUGIN STARTING!");
 		// Register platform
-		context.register(Command.Platform.class, BASIC_PLATFORM);
+		//context.register(Command.Platform.class, BASIC_PLATFORM);
 		// List of content types
 		context.register(Content.Type.class, SourceFile.ContentType);
 		context.register(Content.Type.class, BinaryFile.ContentType);
