@@ -15,7 +15,7 @@ package wy;
 
 import java.util.regex.Pattern;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
 import wy.cfg.Configuration;
 
 /**

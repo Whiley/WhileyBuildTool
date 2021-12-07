@@ -18,26 +18,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.util.Pair;
-import jbfs.util.Trie;
+import jbuildstore.core.Content;
+import jbuildgraph.util.Pair;
+import jbuildgraph.util.Trie;
 
-public class ConfigFile implements Build.Artifact {
+public class ConfigFile implements Content {
 	// =========================================================================
 	// Content Type
 	// =========================================================================
 
 	public static final Content.Type<ConfigFile> ContentType = new Content.Type<>() {
 		@Override
-		public ConfigFile read(Trie id, InputStream input, Content.Registry registry) throws IOException {
+		public ConfigFile read(InputStream input) throws IOException {
 			ConfigFileLexer lexer = new ConfigFileLexer(input);
-			ConfigFileParser parser = new ConfigFileParser(id, lexer.scan());
+			ConfigFileParser parser = new ConfigFileParser(lexer.scan());
 			return parser.read();
 		}
 
@@ -53,41 +51,25 @@ public class ConfigFile implements Build.Artifact {
 		}
 
 		@Override
-		public String getSuffix() {
+		public String suffix() {
 			return "toml";
 		}
 	};
 
 	// =========================================================================
-	// Node kinds
-	// =========================================================================
-
-	public static final int DECL_mask = 0b00010000;
-	public static final int DECL_section = DECL_mask + 0;
-	public static final int DECL_keyvalue = DECL_mask + 1;
-
-	// =========================================================================
 	// Constructors
 	// =========================================================================
-	private final Trie path;
 	/**
 	 * The list of declarations which make up this configuration.
 	 */
 	private ArrayList<Declaration> declarations;
 
-	public ConfigFile(Trie path) {
+	public ConfigFile() {
 		this.declarations = new ArrayList<>();
-		this.path = path;
 	}
 
-	public ConfigFile(Trie path, Collection<Declaration> declarations) {
+	public ConfigFile(Collection<Declaration> declarations) {
 		this.declarations = new ArrayList<>(declarations);
-		this.path = path;
-	}
-
-	@Override
-	public Trie getPath() {
-		return path;
 	}
 
 	@Override
@@ -95,10 +77,6 @@ public class ConfigFile implements Build.Artifact {
 		return ConfigFile.ContentType;
 	}
 
-	@Override
-	public List<? extends Build.Artifact> getSourceArtifacts() {
-		return Collections.EMPTY_LIST;
-	}
 
 	public static interface Declaration {
 
@@ -128,6 +106,7 @@ public class ConfigFile implements Build.Artifact {
 	public static class Table implements Declaration {
 		private final String name;
 		private final ArrayList<KeyValuePair> contents;
+
 		public Table(String name, List<KeyValuePair> contents) {
 			this.name = name;
 			this.contents = new ArrayList<>(contents);
@@ -148,7 +127,7 @@ public class ConfigFile implements Build.Artifact {
 	 * @author David J. Pearce
 	 *
 	 */
-	public static class KeyValuePair extends Pair<String,Object> implements Declaration {
+	public static class KeyValuePair extends Pair<String, Object> implements Declaration {
 
 		public KeyValuePair(String key, Object value) {
 			super(key, value);
@@ -210,7 +189,7 @@ public class ConfigFile implements Build.Artifact {
 			// Find the key-value pair
 			KeyValuePair kvp = getKeyValuePair(key, declarations);
 			// If didn't find a value, still might have default
-			if(kvp == null && schema.isKey(key)) {
+			if (kvp == null && schema.isKey(key)) {
 				// Get the descriptor for this key
 				Configuration.KeyValueDescriptor<?> descriptor = schema.getDescriptor(key);
 				// Check whether have a default
@@ -256,7 +235,7 @@ public class ConfigFile implements Build.Artifact {
 		@Override
 		public List<Trie> matchAll(Trie filter) {
 			ArrayList<Trie> matches = new ArrayList<>();
-			match(Trie.ROOT,filter,declarations,matches);
+			match(Trie.ROOT, filter, declarations, matches);
 			return matches;
 		}
 
@@ -264,7 +243,7 @@ public class ConfigFile implements Build.Artifact {
 		public String toString() {
 			List<Trie> keys = matchAll(Trie.fromString("**/*"));
 			String r = "{";
-			for(int i=0;i!=keys.size();++i) {
+			for (int i = 0; i != keys.size(); ++i) {
 				Trie ith = keys.get(i);
 				r = (i == 0) ? r : r + ",";
 				r += ith + "=" + get(ith);
@@ -318,7 +297,7 @@ public class ConfigFile implements Build.Artifact {
 				// Identify all matching keys
 				List<Trie> results = matchAll(descriptor.getFilter());
 				// Sanity check whether required
-				if(results.size() == 0 && descriptor.isRequired()) {
+				if (results.size() == 0 && descriptor.isRequired()) {
 					throw new IllegalArgumentException("missing key value: " + descriptor.getFilter());
 				}
 				// Check all matching keys

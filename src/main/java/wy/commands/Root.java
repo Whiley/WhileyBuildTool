@@ -1,103 +1,72 @@
+// Copyright 2011 The Whiley Project Developers
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package wy.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jbfs.util.Trie;
-import wy.cfg.Configuration;
-import wy.lang.Command;
+import jcmdarg.core.Command;
+import jcmdarg.core.Option;
+import jcmdarg.core.Command.Arguments;
+import jcmdarg.util.Options;
+import wy.lang.Environment;
+import wy.lang.Plugin;
 
 /**
- * The "root" command of the command tree.  This is the starting point for all command execution, and is really just a
- * dummy which is needed for the start of the chain.  However, it does include a few commands which can be passed
- * directly to the "wy" tool.
+ * Root descriptor for the tool.
  */
-public class Root implements Command {
-    /**
-     * Construct an appropriate root descriptor for a given set of top-level commands.
-     *
-     * @param commands
-     * @return
-     */
-    public static Command.Descriptor DESCRIPTOR(final List<Command.Descriptor> commands) {
-        // Done
-        return new Command.Descriptor() {
-            @Override
-            public Configuration.Schema getConfigurationSchema() {
-                throw new IllegalArgumentException();
-            }
+public class Root implements Command.Descriptor<Environment, Boolean> {
+	private final Plugin.Environment env;
 
-            @Override
-            public List<Command.Option.Descriptor> getOptionDescriptors() {
-                return Arrays.asList(
-                        Command.OPTION_FLAG("verbose", "generate verbose information about the build", false),
-                        Command.OPTION_POSITIVE_INTEGER("profile", "generate profiling information about the build", 0),
-                        Command.OPTION_FLAG("brief", "generate brief output for syntax errors", false));
-            }
+	public Root(Plugin.Environment env) {
+		this.env = env;
+	}
 
-            @Override
-            public String getName() {
-                return "wy";
-            }
+	@Override
+	public List<Option.Descriptor> getOptionDescriptors() {
+		return Arrays.asList(
+				Options.FLAG("verbose", "generate verbose information about the build", false),
+				Options.FLAG("brief", "generate brief output for syntax errors", false));
+	}
 
-            @Override
-            public String getDescription() {
-                return "Command-line interface for the Whiley Compiler Collection";
-            }
+	@Override
+	public String getName() {
+		return null;
+	}
 
-            @Override
-            public List<Command.Descriptor> getCommands() {
-                return commands;
-            }
+	@Override
+	public String getDescription() {
+		return "The Whiley Build Tool";
+	}
 
-            @Override
-            public Command initialise(Environment parent) {
-                return new Root(this,parent);
-            }
-        };
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Command.Descriptor<Environment, Boolean>> getCommands() {
+		ArrayList result = new ArrayList<>();
+		env.getAll(Command.Descriptor.class).forEach(result::add);
+		return result;
+	}
 
-    private final Command.Descriptor descriptor;
-    private final Command.Environment environment;
+	@Override
+	public Command<Boolean> initialise(Environment env) {
+		return () -> true;
+	}
 
-    public Root(Command.Descriptor descriptor, Command.Environment environment) {
-        this.descriptor = descriptor;
-        this.environment = environment;
-    }
-
-    @Override
-    public Command.Descriptor getDescriptor() {
-        return descriptor;
-    }
-
-    @Override
-    public void initialise() {
-    }
-
-    @Override
-    public void finalise() {
-    }
-
-    @Override
-    public boolean execute(Trie path, Command.Template template) throws Exception {
-        boolean verbose = template.getOptions().get("verbose", Boolean.class);
-        //
-        if (template.getChild() != null) {
-            // Execute a subcommand
-            template = template.getChild();
-            // Access the descriptor
-            Command.Descriptor descriptor = template.getCommandDescriptor();
-            // Construct an instance of the command
-            Command command = descriptor.initialise(environment);
-            //
-            return command.execute(path,template);
-        } else {
-            // Initialise command
-            Command cmd = HelpCmd.DESCRIPTOR.initialise(environment);
-            // Execute command
-            return cmd.execute(path, template);
-        }
-    }
-
-
-}
+	@Override
+	public Environment apply(Arguments<Environment, Boolean> args, Environment env) {
+		// FIXME: should do something with the arguments
+		return env;
+	}
+};

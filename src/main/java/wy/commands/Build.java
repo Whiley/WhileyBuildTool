@@ -19,22 +19,16 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 
-import jbfs.core.Build;
-import jbfs.core.Content;
-import jbfs.core.SourceFile;
-import jbfs.core.Build.Artifact;
-import jbfs.core.Build.Repository;
-import jbfs.core.Build.SnapShot;
-import jbfs.util.Pair;
-import jbfs.util.Transactions;
-import jbfs.util.Trie;
-import wy.cfg.Configuration;
-import wy.cfg.Configuration.Schema;
-import wy.lang.Command;
+import jbuildgraph.core.Build.*;
+import jbuildgraph.core.SourceFile;
+import jbuildgraph.core.Build.Artifact;
+import jbuildgraph.util.Trie;
+import jcmdarg.core.Command;
+import jcmdarg.core.Option;
+import jcmdarg.util.Options;
+import wy.lang.Environment;
 import wy.lang.Syntactic;
 
 /**
@@ -42,12 +36,12 @@ import wy.lang.Syntactic;
  * @author David J. Pearce
  *
  */
-public class BuildCmd implements Command {
+public class Build implements Command<Boolean> {
 	public static Trie BUILD_PLATFORMS = Trie.fromString("build/platforms");
 	/**
 	 * The descriptor for this command.
 	 */
-	public static final Command.Descriptor DESCRIPTOR = new Command.Descriptor() {
+	public static final Command.Descriptor<Environment, Boolean> DESCRIPTOR = new Command.Descriptor<>() {
 		@Override
 		public String getName() {
 			return "build";
@@ -60,25 +54,24 @@ public class BuildCmd implements Command {
 
 		@Override
 		public List<Option.Descriptor> getOptionDescriptors() {
-			return Arrays.asList(Command.OPTION_FLAG("verbose", "generate verbose information about the build", false),
-					Command.OPTION_FLAG("brief", "generate brief output for syntax errors", false));
+			return Arrays.asList(Options.FLAG("verbose", "generate verbose information about the build", false),
+					Options.FLAG("brief", "generate brief output for syntax errors", false));
 		}
 
 		@Override
-		public Schema getConfigurationSchema() {
-			return Configuration.EMPTY_SCHEMA;
+		public List<Descriptor<Environment, Boolean>> getCommands() {
+			return Collections.emptyList();
 		}
 
 		@Override
-		public List<Descriptor> getCommands() {
-			return Collections.EMPTY_LIST;
+		public Build initialise(Environment environment) {
+			return new Build(environment, System.out, System.err);
 		}
 
 		@Override
-		public Command initialise(Command.Environment environment) {
-			return new BuildCmd(environment, System.out, System.err);
+		public Environment apply(Arguments<Environment, Boolean> instance, Environment state) {
+			return state;
 		}
-
 	};
 
 	/**
@@ -103,116 +96,49 @@ public class BuildCmd implements Command {
 	/**
 	 * The enclosing project for this build
 	 */
-	private final Command.Environment environment;
+	private final Environment environment;
 
-	public BuildCmd(Command.Environment environment, OutputStream sysout, OutputStream syserr) {
+	public Build(Environment environment, OutputStream sysout, OutputStream syserr) {
 		this.environment = environment;
 		this.sysout = new PrintStream(sysout);
 		this.syserr = new PrintStream(syserr);
 	}
 
 	@Override
-	public Descriptor getDescriptor() {
-		return DESCRIPTOR;
-	}
-
-	@Override
-	public void initialise() {
-
-	}
-
-	@Override
-	public void finalise() {
-	}
-
-	@Override
-	public boolean execute(Trie path, Template template) throws Exception {
-		// Access workspace root
-		Content.Root workspace = environment.getWorkspaceRoot();
-		// Extract configuration for this path
-		Repository repository = environment.getRepository();
-		// Construct pipeline
-		Build.Transaction transaction = getBuildPlan(path, environment);
-		try {
-			// Runs tasks
-			boolean r = repository.apply(transaction);
-			// Success if all pipeline stages completed
-			if(r) {
-				// Build succeeded
-				return true;
-			} else {
-				syserr.println("Build failed.");
-				// Build failure
+	public Boolean execute() {
+		System.out.println("[build] execute");
+		// Initialise all build platforms
+		List<Platform<?>> platforms = determineBuildPipeline();
+		System.out.println("[build] initialise");
+		// Initialise the build pipeline
+		List<Task> tasks = initialisePipeline(platforms);
+		System.out.println("[build] run");
+		// Execute pipeline sequentially (for now)
+		for(Task task : tasks) {
+			if(!task.apply(null)) {
+				// Someone went wrong
 				return false;
 			}
-		} finally {
-			// Look for error messages
-			for (Build.Task task : transaction) {
-				Trie target = task.getPath();
-				Build.Artifact binary = repository.get(task.getContentType(), target);
-				if (binary != null) {
-					printSyntacticMarkers(syserr, binary);
-					// Write back all artifacts to workspace
-					workspace.put(target, binary);
-				}
-			}
-			// Sync workspace to disk
-			workspace.synchronise();
 		}
+		// Success!
+		return true;
 	}
 
-	public static Build.Transaction getBuildPlan(Trie path, Command.Environment environment) throws IOException {
-		// Extract configuration for this path
-		Configuration config = environment.get(path);
-		List<Build.Task> tasks = new ArrayList<>();
-		// Determine active platforms
-		Object[] platforms = config.get(Object[].class, BUILD_PLATFORMS);
-		// Construct tasks
-		for (Command.Platform p : environment.getCommandPlatforms()) {
-			// TODO: this is not pretty.
-			for (int i = 0; i != platforms.length; ++i) {
-				String ith = (String) platforms[i];
-				if (ith.toString().equals(p.getName())) {
-					// Yes, this platform is active
-					tasks.add(p.initialise(path, environment));
-				}
-			}
+	private List<Platform<?>> determineBuildPipeline() {
+		ArrayList<Platform<?>> platforms = new ArrayList<>();
+		environment.getBuildPlatforms().forEach(platforms::add);
+		// FIXME: need to intersect list of active platforms
+		return platforms;
+	}
+
+	private List<Task> initialisePipeline(List<Platform<?>> platforms) {
+		ArrayList<Task> tasks = new ArrayList<>();
+		for(Platform<?> p : platforms) {
+			// FIXME: what goes here?
+			tasks.add(p.initialise(null));
 		}
 		//
-		return Transactions.create(tasks);
-	}
-
-	public static class Pipeline implements Function<SnapShot,SnapShot>, Iterable<Build.Task>  {
-		private final List<Build.Task> tasks;
-		private int completed;
-
-		private Pipeline(List<Build.Task> tasks) {
-			this.tasks = tasks;
-		}
-
-		@Override
-		public SnapShot apply(SnapShot s) {
-			for (int i = 0; i != tasks.size(); ++i) {
-				Build.Task ith = tasks.get(i);
-				Pair<SnapShot, Boolean> p = ith.apply(s);
-				s = p.first();
-				if (!p.second()) {
-					// Print error messages
-					break;
-				}
-				completed = completed + 1;
-			}
-			return s;
-		}
-
-		@Override
-		public Iterator<Build.Task> iterator() {
-			return tasks.iterator();
-		}
-
-		public boolean completed() {
-			return completed == tasks.size();
-		}
+		return tasks;
 	}
 
 	/**
@@ -222,7 +148,7 @@ public class BuildCmd implements Command {
 	 * @param executor
 	 * @throws IOException
 	 */
-	public static void printSyntacticMarkers(PrintStream output, Build.Artifact target) throws IOException {
+	public static void printSyntacticMarkers(PrintStream output, Artifact target) throws IOException {
 		// Extract all syntactic markers from entries in the build graph
 		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
 		// For each marker, print out error messages appropriately
@@ -232,9 +158,8 @@ public class BuildCmd implements Command {
 		}
 	}
 
-
 	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
-			List<? extends Build.Artifact> sources) {
+			List<? extends Artifact> sources) {
 //		// Identify enclosing source file
 //		SourceFile source = getSourceEntry(marker.getSource(), sources);
 //		String filename = source.getPath().toString();
@@ -253,7 +178,7 @@ public class BuildCmd implements Command {
 //		}
 	}
 
-	public static List<Syntactic.Marker> extractSyntacticMarkers(Build.Artifact... binaries) throws IOException {
+	public static List<Syntactic.Marker> extractSyntacticMarkers(Artifact... binaries) throws IOException {
 		List<Syntactic.Marker> annotated = new ArrayList<>();
 		//
 		for (Artifact b : binaries) {
@@ -279,10 +204,7 @@ public class BuildCmd implements Command {
 		throw new IllegalArgumentException();
 	}
 
-
-	private static void printLineHighlight(PrintStream output,
-										   Syntactic.Span span,
-										   SourceFile.Line enclosing) {
+	private static void printLineHighlight(PrintStream output, Syntactic.Span span, SourceFile.Line enclosing) {
 		// Extract line text
 		String text = enclosing.getText();
 		// Determine start and end of span

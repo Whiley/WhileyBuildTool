@@ -11,25 +11,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package basic;
+package hello.world;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
-import jbuildstore.core.Content;
 import jcmdarg.core.Command;
 import jcmdarg.core.Command.Arguments;
 import jcmdarg.core.Option.Descriptor;
-
-import wy.cfg.Configuration;
-import wy.cfg.Configuration.Schema;
-import wy.lang.Plugin;
 import wy.lang.Environment;
+import wy.lang.Plugin;
 import wy.lang.Plugin.Context;
 
+/**
+ * This illustrates the simplest possible plugin for the Wy build tool. It adds
+ * a simple command "hello" which prints "world" (no surprises there).
+ *
+ * @author David J. Pearce
+ *
+ */
 public class Activator implements Plugin.Activator {
-
 	public static final Command.Descriptor<Environment,Boolean> COMMAND = new Command.Descriptor<>() {
 
 		@Override
@@ -39,7 +39,7 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public String getDescription() {
-			return "A simple build platform for basic files";
+			return "The simplest possible command";
 		}
 
 		@Override
@@ -49,7 +49,15 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public Command<Boolean> initialise(Environment env) {
-			throw new UnsupportedOperationException();
+			return new Command<>() {
+				@Override
+				public Boolean execute() {
+					// Do something
+					System.out.println("world");
+					// Always succeeds!
+					return true;
+				}
+			};
 		}
 
 		@Override
@@ -68,12 +76,9 @@ public class Activator implements Plugin.Activator {
 
 	@Override
 	public Plugin start(Context context) {
-		System.out.println("BASIC PLUGIN STARTING!");
+		context.logTimedMessage("[Hello World] starting!", 0,0);
 		// Register platform
-		//context.register(Command.Platform.class, BASIC_PLATFORM);
-		// List of content types
-		context.register(Content.Type.class, SourceFile.ContentType);
-		context.register(Content.Type.class, BinaryFile.ContentType);
+		context.register(Command.Descriptor.class, COMMAND);
 		//
 		return new Plugin() {
 
@@ -82,7 +87,6 @@ public class Activator implements Plugin.Activator {
 
 	@Override
 	public void stop(Plugin module, Context context) {
-		System.out.println("BASIC PLUGIN FINISHING!");
+		context.logTimedMessage("[Hello World] finishing", 0,0);
 	}
-
 }

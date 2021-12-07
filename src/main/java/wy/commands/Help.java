@@ -18,22 +18,26 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
+import jcmdarg.core.Command;
+import jcmdarg.core.Option;
+import jcmdarg.util.Options;
 import wy.cfg.Configuration;
-import wy.lang.Command;
+import wy.lang.Environment;
 
-public class HelpCmd implements Command {
+
+public class Help implements Command<Boolean> {
 
     public static final Configuration.Schema SCHEMA = Configuration
             .fromArray(Configuration.BOUND_INTEGER(Trie.fromString("width"), "fix display width", false, 0));
 
     public static final List<Option.Descriptor> OPTIONS = Arrays
-            .asList(Command.OPTION_NONNEGATIVE_INTEGER("width", "fix display width", 80));
+            .asList(Options.UNSIGNED_INTEGER("width", "fix display width", 80));
 
     /**
      * The descriptor for this command.
      */
-    public static final Command.Descriptor DESCRIPTOR = new Command.Descriptor() {
+    public static final Descriptor<Environment,Boolean> DESCRIPTOR = new Descriptor<>() {
         @Override
         public String getName() {
             return "help";
@@ -49,73 +53,38 @@ public class HelpCmd implements Command {
             return OPTIONS;
         }
 
-        @Override
-        public Configuration.Schema getConfigurationSchema() {
-            return SCHEMA;
-        }
+		@Override
+		public Command<Boolean> initialise(Environment state) {
+			return new Help(System.out,state);
+		}
 
-        @Override
-        public List<Descriptor> getCommands() {
-            return Collections.EMPTY_LIST;
-        }
+		@Override
+		public Environment apply(Arguments<Environment, Boolean> instance, Environment state) {
+			return state;
+		}
 
-        @Override
-        public Command initialise(Command.Environment environment) {
-            return new HelpCmd(System.out, environment);
-        }
+		@Override
+		public List<Descriptor<Environment, Boolean>> getCommands() {
+			return Collections.emptyList();
+		}
     };
     //
     private final PrintStream out;
-    private final Command.Environment environment;
+    private final Environment environment;
 
-    public HelpCmd(PrintStream out, Command.Environment environment) {
+    public Help(PrintStream out, Environment environment) {
         this.environment = environment;
         this.out = out;
     }
 
     @Override
-    public Descriptor getDescriptor() {
-        return DESCRIPTOR;
-    }
-
-    @Override
-    public void initialise() {
-    }
-
-    @Override
-    public void finalise() {
-    }
-
-    @Override
-    public boolean execute(Trie path, Template template) throws Exception {
-        // Extract arguments
-        List<String> args = template.getArguments();
-        //
-        if (args.size() == 0) {
-            printUsage();
-        } else {
-            // Search for the command
-            List<Command.Descriptor> descriptors = environment.getCommandDescriptors();
-            //
-            Command.Descriptor command = null;
-            for (Command.Descriptor c : descriptors) {
-                if (c.getName().equals(args.get(0))) {
-                    command = c;
-                    break;
-                }
-            }
-            //
-            if (command == null) {
-                out.println("No entry for " + args.get(0));
-            } else {
-                print(out, command);
-            }
-        }
+    public Boolean execute() {
+    	printUsage();
         //
         return true;
     }
 
-    public static void print(PrintStream out, Command.Descriptor descriptor) {
+    public static void print(PrintStream out, Descriptor<Environment,Boolean> descriptor) {
         out.println("NAME");
         out.println("\t" + descriptor.getName());
         out.println();
@@ -136,41 +105,39 @@ public class HelpCmd implements Command {
         }
         out.println();
         out.println("SUBCOMMANDS");
-        List<Command.Descriptor> commands = descriptor.getCommands();
+		List<Descriptor<Environment, Boolean>> commands = descriptor.getCommands();
         for (int i = 0; i != commands.size(); ++i) {
-            Command.Descriptor d = commands.get(i);
+			Descriptor<Environment, Boolean> d = commands.get(i);
             out.println("\t" + d.getName());
             out.println("\t\t" + d.getDescription());
         }
         out.println();
-        out.println("CONFIGURATION");
-        Configuration.Schema schema = descriptor.getConfigurationSchema();
-        List<Configuration.KeyValueDescriptor<?>> descriptors = schema.getDescriptors();
-        for (int i = 0; i != descriptors.size(); ++i) {
-            Configuration.KeyValueDescriptor<?> option = descriptors.get(i);
-            out.println("\t" + option.getFilter());
-            out.println("\t\t" + option.getDescription());
-        }
+//        out.println("CONFIGURATION");
+//        Configuration.Schema schema = descriptor.getConfigurationSchema();
+//        List<Configuration.KeyValueDescriptor<?>> descriptors = schema.getDescriptors();
+//        for (int i = 0; i != descriptors.size(); ++i) {
+//            Configuration.KeyValueDescriptor<?> option = descriptors.get(i);
+//            out.println("\t" + option.getFilter());
+//            out.println("\t\t" + option.getDescription());
+//        }
     }
 
     /**
      * Print usage information to the console.
      */
-    protected void printUsage() {
-        List<Command.Descriptor> descriptors = environment.getCommandDescriptors();
-        //
-        out.println("usage: wy [--verbose] command [<options>] [<args>]");
-        out.println();
-        int maxWidth = determineCommandNameWidth(descriptors);
-        out.println("Commands:");
-        for (Command.Descriptor d : descriptors) {
-            out.print("  ");
-            out.print(rightPad(d.getName(), maxWidth));
-            out.println("   " + d.getDescription());
-        }
-        out.println();
-        out.println("Run `wy help COMMAND` for more information on a command");
-    }
+	protected void printUsage() {
+		out.println("usage: wy [--verbose] command [<options>] [<args>]");
+		out.println();
+		int maxWidth = determineCommandNameWidth();
+		out.println("Commands:");
+		for (Descriptor d : environment.getCommandDescriptors()) {
+			out.print("  ");
+			out.print(rightPad(d.getName(), maxWidth));
+			out.println("   " + d.getDescription());
+		}
+		out.println();
+		out.println("Run `wy help COMMAND` for more information on a command");
+	}
 
     /**
      * Right pad a given string with spaces to ensure the resulting string is
@@ -208,9 +175,9 @@ public class HelpCmd implements Command {
      * @param descriptors
      * @return
      */
-    private static int determineCommandNameWidth(List<Command.Descriptor> descriptors) {
+	private int determineCommandNameWidth() {
         int max = 0;
-        for (Command.Descriptor d : descriptors) {
+        for (Descriptor<Environment,Boolean> d : environment.getCommandDescriptors()) {
             max = Math.max(max, d.getName().length());
         }
         return max;

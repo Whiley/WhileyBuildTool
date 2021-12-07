@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import jbfs.util.Trie;
+import jbuildgraph.util.Trie;
 
 /**
  * A configuration provides a generic key-value store for which the backing is
