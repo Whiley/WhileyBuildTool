@@ -8,8 +8,11 @@ import java.util.regex.Pattern;
 
 import basic.BinaryFile.Stmt;
 import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
+import jbuildstore.core.Content.Ledger;
 
 public class CompileTask implements Build.Task {
 	private static final Pattern LINE_MATCH = Pattern.compile("[a-zA-Z0-9/\\\\_.:]+");
@@ -22,22 +25,7 @@ public class CompileTask implements Build.Task {
 	}
 
 	@Override
-	public Trie getPath() {
-		return path;
-	}
-
-	@Override
-	public Type<? extends Build.Artifact> getContentType() {
-		return BinaryFile.ContentType;
-	}
-
-	@Override
-	public List<? extends Build.Artifact> getSourceArtifacts() {
-		return Arrays.asList(source);
-	}
-
-	@Override
-	public Pair<Build.SnapShot, Boolean> apply(Build.SnapShot t) {
+	public boolean apply(Content.Ledger<Trie, Artifact> ledger) {
 		// FIXME: should read from snapshot or just use source?
 		ArrayList<BinaryFile.Stmt> stmts = new ArrayList<>();
 		//
@@ -45,9 +33,21 @@ public class CompileTask implements Build.Task {
 			stmts.add(parseStatement(line));
 		}
 		//
-		Build.SnapShot snap = t.put(new BinaryFile(path, source, stmts));
+//		ledger.put(new BinaryFile(path, source, stmts));
+//		//
+//		return true;
 		//
-		return new Pair<>(snap, true);
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<Artifact> requires() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<Artifact> ensures() {
+		throw new UnsupportedOperationException();
 	}
 
 	private Stmt parseStatement(String line) {

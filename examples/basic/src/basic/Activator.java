@@ -39,7 +39,7 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public String getDescription() {
-			return "The simplest possible command";
+			return "A simple build platform for basic files";
 		}
 
 		@Override

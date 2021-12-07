@@ -15,8 +15,10 @@ package wy.lang;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
+import jbuildgraph.core.Build;
 import jbuildstore.core.Content;
 import jcmdarg.core.Command;
 import wy.util.Logger;
@@ -55,6 +57,16 @@ public interface Plugin {
 
 		/**
 		 * Create a new extension point which subsequent modules can register extensions
+		 * for. This employs a default implementation of <code>ExtensionPoint</code>
+		 * which is backed by an <code>ArrayList</code>.
+		 *
+		 * @param extension
+		 * @param ep
+		 */
+		public <T> void create(Class<T> extension);
+
+		/**
+		 * Create a new extension point which subsequent modules can register extensions
 		 * for.
 		 *
 		 * @param extension
@@ -70,15 +82,14 @@ public interface Plugin {
 	 * @author David J. Pearce
 	 *
 	 */
-	public interface ExtensionPoint<T> {
-
+	public interface ExtensionPoint<T> extends Iterable<T> {
 		/**
 		 * Notify extension point that a new extension has been registered for it.
 		 *
 		 * @param extension The extension implementation to register with this extension
 		 *                  point.
 		 */
-		public void register(T feature);
+		public void register(T extension);
 	}
 
 	/**
@@ -126,28 +137,14 @@ public interface Plugin {
 		 */
 		public final HashMap<Class<?>, ExtensionPoint<?>> extensionPoints = new HashMap<>();
 
-		/**
-		 * List of all known content types to the system.
-		 */
-		protected final ArrayList<Content.Type<? extends Content>> contentTypes = new ArrayList<>();
-
-		/**
-		 * List of all known commands registered by plugins.
-		 */
-		protected final ArrayList<Command.Descriptor<wy.lang.Environment, Boolean>> descriptors = new ArrayList<>();
-
+		@SuppressWarnings("rawtypes")
 		public Environment(Logger logger) {
 			this.logger = logger;
-			create(Content.Type.class, p -> contentTypes.add(p));
-			create(Command.Descriptor.class, p -> descriptors.add(p));
 		}
 
-		public List<Content.Type<? extends Content>> getContentTypes() {
-			return contentTypes;
-		}
-
-		public List<Command.Descriptor<wy.lang.Environment, Boolean>> getCommandDescriptors() {
-			return descriptors;
+		@SuppressWarnings("unchecked")
+		public <T> Iterable<T> getAll(Class<T> kind) {
+			return (Iterable<T>) extensionPoints.get(kind);
 		}
 
 		public void setLogger(Logger logger) {
@@ -169,13 +166,19 @@ public interface Plugin {
 		// ==================================================================
 
 		@Override
-		public <T> void register(Class<T> ep, T feature) {
-			wy.lang.Plugin.ExtensionPoint<T> container = (wy.lang.Plugin.ExtensionPoint<T>) extensionPoints.get(ep);
+		public <T> void register(Class<T> kind, T extension) {
+			@SuppressWarnings("unchecked")
+			ExtensionPoint<T> ep = (ExtensionPoint<T>) extensionPoints.get(kind);
 			if (ep == null) {
-				throw new RuntimeException("Missing extension point: " + ep.getCanonicalName());
+				throw new RuntimeException("Missing extension point: " + kind.getCanonicalName());
 			} else {
-				container.register(feature);
+				ep.register(extension);
 			}
+		}
+
+		@Override
+		public <T> void create(Class<T> extension) {
+			this.create(extension, new ExtensionPointList<T>());
 		}
 
 		@Override
@@ -190,6 +193,26 @@ public interface Plugin {
 		@Override
 		public void logTimedMessage(String msg, long time, long memory) {
 			logger.logTimedMessage(msg, time, memory);
+		}
+	}
+
+	/**
+	 * A simple extension point which is backed by an <code>ArrayList</code>.
+	 *
+	 * @author David J. Pearce
+	 *
+	 * @param <T>
+	 */
+	public static class ExtensionPointList<T> implements ExtensionPoint<T> {
+		private final ArrayList<T> extensions = new ArrayList<>();
+		@Override
+		public Iterator<T> iterator() {
+			return extensions.iterator();
+		}
+
+		@Override
+		public void register(T extension) {
+			extensions.add(extension);
 		}
 	}
 }

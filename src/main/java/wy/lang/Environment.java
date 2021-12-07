@@ -1,13 +1,10 @@
 package wy.lang;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 
 import jcmdarg.core.Command;
-import jcmdarg.core.Option;
-import jcmdarg.core.Command.Arguments;
-import jcmdarg.util.Options;
 import wy.commands.RootCmd;
+import jbuildgraph.core.Build;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
@@ -49,16 +46,24 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public List<Command.Descriptor<Environment,Boolean>> getCommandDescriptors() {
-		return env.getCommandDescriptors();
+	public Iterable<Command.Descriptor<Environment,Boolean>> getCommandDescriptors() {
+		return (Iterable) env.getAll(Command.Descriptor.class);
 	}
 
 	/**
 	 * Get the list of registered content types.
 	 * @return
 	 */
-	public List<Content.Type<? extends Content>> getContentTypes() {
-		return env.getContentTypes();
+	public Iterable<Content.Type<? extends Content>> getContentTypes() {
+		return (Iterable) env.getAll(Content.Type.class);
+	}
+
+	/**
+	 * Get the list of registered build platforms.
+	 * @return
+	 */
+	public Iterable<Build.Platform<?>> getBuildPlatforms() {
+		return (Iterable) env.getAll(Build.Platform.class);
 	}
 
 	public Command.Descriptor<Environment, Boolean> getRootDescriptor() {

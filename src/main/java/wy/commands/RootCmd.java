@@ -13,6 +13,7 @@
 // limitations under the License.
 package wy.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,9 +51,12 @@ public class RootCmd implements Command.Descriptor<Environment, Boolean> {
 		return "The Whiley Build Tool";
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Command.Descriptor<Environment, Boolean>> getCommands() {
-		return env.getCommandDescriptors();
+		ArrayList result = new ArrayList<>();
+		env.getAll(Command.Descriptor.class).forEach(result::add);
+		return result;
 	}
 
 	@Override

@@ -19,21 +19,12 @@ import java.io.PrintStream;
 import java.util.*;
 
 import jbuildgraph.core.Build;
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
-import jbuildstore.core.Content.Type;
-import jbuildstore.core.Key;
-import jbuildstore.util.HashMapStore;
 import jbuildstore.util.DirectoryStore;
-import jbuildstore.util.ZipFile;
 import jcmdarg.core.Command;
-import jcmdarg.core.Command.Arguments;
-import jcmdarg.core.Option;
-import jcmdarg.util.Options;
 import wy.cfg.*;
-import wy.cfg.Configuration.Schema;
 import wy.commands.*;
 import wy.lang.Environment;
 import wy.lang.Plugin;
@@ -75,11 +66,13 @@ public class Main {
 		// Construct plugin environment and activate plugins
 		Plugin.Environment penv = activatePlugins(system, logger);
 		// Register all content types defined by plugins
-		registry.addAll(penv.getContentTypes());
+		penv.getAll(Content.Type.class).forEach(registry::add);
 		// Register content type for configuration files
 		registry.add(ConfigFile.ContentType);
-		// Register all plugin commands
-		penv.getCommandDescriptors().addAll(0,DEFAULT_COMMANDS);
+		// Register all default plugin commands
+		for (Command.Descriptor<?, ?> cmd : DEFAULT_COMMANDS) {
+			penv.register(Command.Descriptor.class, cmd);
+		}
 		// Determine top-level directory and relative path
 		Pair<File, Trie> lrp = determineLocalRootDirectory();
 		File localDir = lrp.first();
@@ -188,6 +181,10 @@ public class Main {
 	 */
 	private static Plugin.Environment activatePlugins(Configuration global, Logger logger) {
 		Plugin.Environment env = new Plugin.Environment(logger);
+		// Create default plugin extension points.
+		env.create(Content.Type.class);
+		env.create(Build.Platform.class);
+		env.create(Command.Descriptor.class);
 		// Determine the set of install plugins
 		List<Trie> plugins = global.matchAll(Trie.fromString("plugins/*"));
 		// start modules

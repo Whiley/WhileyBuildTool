@@ -125,21 +125,19 @@ public class HelpCmd implements Command<Boolean> {
     /**
      * Print usage information to the console.
      */
-    protected void printUsage() {
-        List<Descriptor<Environment,Boolean>> descriptors = environment.getCommandDescriptors();
-        //
-        out.println("usage: wy [--verbose] command [<options>] [<args>]");
-        out.println();
-        int maxWidth = determineCommandNameWidth(descriptors);
-        out.println("Commands:");
-        for (Descriptor d : descriptors) {
-            out.print("  ");
-            out.print(rightPad(d.getName(), maxWidth));
-            out.println("   " + d.getDescription());
-        }
-        out.println();
-        out.println("Run `wy help COMMAND` for more information on a command");
-    }
+	protected void printUsage() {
+		out.println("usage: wy [--verbose] command [<options>] [<args>]");
+		out.println();
+		int maxWidth = determineCommandNameWidth();
+		out.println("Commands:");
+		for (Descriptor d : environment.getCommandDescriptors()) {
+			out.print("  ");
+			out.print(rightPad(d.getName(), maxWidth));
+			out.println("   " + d.getDescription());
+		}
+		out.println();
+		out.println("Run `wy help COMMAND` for more information on a command");
+	}
 
     /**
      * Right pad a given string with spaces to ensure the resulting string is
@@ -177,9 +175,9 @@ public class HelpCmd implements Command<Boolean> {
      * @param descriptors
      * @return
      */
-	private static int determineCommandNameWidth(List<Descriptor<Environment, Boolean>> descriptors) {
+	private int determineCommandNameWidth() {
         int max = 0;
-        for (Descriptor<Environment,Boolean> d : descriptors) {
+        for (Descriptor<Environment,Boolean> d : environment.getCommandDescriptors()) {
             max = Math.max(max, d.getName().length());
         }
         return max;
