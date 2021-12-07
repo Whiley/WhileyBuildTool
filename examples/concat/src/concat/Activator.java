@@ -39,6 +39,7 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public Task initialise(String context) {
+			System.out.println("Initialise concat platform");
 			return new Task();
 		}
 
@@ -46,7 +47,7 @@ public class Activator implements Plugin.Activator {
 
 	@Override
 	public Plugin start(Context context) {
-		context.logTimedMessage("[Hello World] starting!", 0, 0);
+		context.logTimedMessage("[Concat] starting!", 0, 0);
 		// Register build platform
 		context.register(Build.Platform.class, PLATFORM);
 		//
@@ -57,7 +58,7 @@ public class Activator implements Plugin.Activator {
 
 	@Override
 	public void stop(Plugin module, Context context) {
-		context.logTimedMessage("[Hello World] finishing", 0,0);
+		context.logTimedMessage("[Concat] finishing", 0,0);
 	}
 
 	public static class Task implements Build.Task {

@@ -26,7 +26,7 @@ import wy.cfg.Configuration;
 import wy.lang.Environment;
 
 
-public class HelpCmd implements Command<Boolean> {
+public class Help implements Command<Boolean> {
 
     public static final Configuration.Schema SCHEMA = Configuration
             .fromArray(Configuration.BOUND_INTEGER(Trie.fromString("width"), "fix display width", false, 0));
@@ -55,7 +55,7 @@ public class HelpCmd implements Command<Boolean> {
 
 		@Override
 		public Command<Boolean> initialise(Environment state) {
-			return new HelpCmd(System.out,state);
+			return new Help(System.out,state);
 		}
 
 		@Override
@@ -72,7 +72,7 @@ public class HelpCmd implements Command<Boolean> {
     private final PrintStream out;
     private final Environment environment;
 
-    public HelpCmd(PrintStream out, Environment environment) {
+    public Help(PrintStream out, Environment environment) {
         this.environment = environment;
         this.out = out;
     }

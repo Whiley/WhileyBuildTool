@@ -3,7 +3,7 @@ package wy.lang;
 import java.util.Iterator;
 
 import jcmdarg.core.Command;
-import wy.commands.RootCmd;
+import wy.commands.Root;
 import jbuildgraph.core.Build;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
@@ -19,7 +19,7 @@ public class Environment {
 	/**
 	 * Root command hierarchy for the tool.
 	 */
-	private final RootCmd root;
+	private final Root root;
 	/**
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
@@ -32,7 +32,7 @@ public class Environment {
 
 	public Environment(Plugin.Environment env, Iterable<Artifact> entries, Content.Store<Trie, Content> workingRoot) {
 		this.env = env;
-		this.root = new RootCmd(env);
+		this.root = new Root(env);
 		this.repository = new HashMapStore<>();
 		this.workingRoot = workingRoot;
 		// Initialise store

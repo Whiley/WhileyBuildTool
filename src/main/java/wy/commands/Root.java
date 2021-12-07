@@ -27,10 +27,10 @@ import wy.lang.Plugin;
 /**
  * Root descriptor for the tool.
  */
-public class RootCmd implements Command.Descriptor<Environment, Boolean> {
+public class Root implements Command.Descriptor<Environment, Boolean> {
 	private final Plugin.Environment env;
 
-	public RootCmd(Plugin.Environment env) {
+	public Root(Plugin.Environment env) {
 		this.env = env;
 	}
 

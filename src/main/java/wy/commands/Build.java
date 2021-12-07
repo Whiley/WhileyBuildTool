@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.*;
 import jbuildgraph.core.SourceFile;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
@@ -36,7 +36,7 @@ import wy.lang.Syntactic;
  * @author David J. Pearce
  *
  */
-public class BuildCmd implements Command<Boolean> {
+public class Build implements Command<Boolean> {
 	public static Trie BUILD_PLATFORMS = Trie.fromString("build/platforms");
 	/**
 	 * The descriptor for this command.
@@ -64,13 +64,13 @@ public class BuildCmd implements Command<Boolean> {
 		}
 
 		@Override
-		public BuildCmd initialise(Environment environment) {
-			return new BuildCmd(environment, System.out, System.err);
+		public Build initialise(Environment environment) {
+			return new Build(environment, System.out, System.err);
 		}
 
 		@Override
 		public Environment apply(Arguments<Environment, Boolean> instance, Environment state) {
-			throw new UnsupportedOperationException();
+			return state;
 		}
 	};
 
@@ -98,7 +98,7 @@ public class BuildCmd implements Command<Boolean> {
 	 */
 	private final Environment environment;
 
-	public BuildCmd(Environment environment, OutputStream sysout, OutputStream syserr) {
+	public Build(Environment environment, OutputStream sysout, OutputStream syserr) {
 		this.environment = environment;
 		this.sysout = new PrintStream(sysout);
 		this.syserr = new PrintStream(syserr);
@@ -106,7 +106,39 @@ public class BuildCmd implements Command<Boolean> {
 
 	@Override
 	public Boolean execute() {
-		return false;
+		System.out.println("[build] execute");
+		// Initialise all build platforms
+		List<Platform<?>> platforms = determineBuildPipeline();
+		System.out.println("[build] initialise");
+		// Initialise the build pipeline
+		List<Task> tasks = initialisePipeline(platforms);
+		System.out.println("[build] run");
+		// Execute pipeline sequentially (for now)
+		for(Task task : tasks) {
+			if(!task.apply(null)) {
+				// Someone went wrong
+				return false;
+			}
+		}
+		// Success!
+		return true;
+	}
+
+	private List<Platform<?>> determineBuildPipeline() {
+		ArrayList<Platform<?>> platforms = new ArrayList<>();
+		environment.getBuildPlatforms().forEach(platforms::add);
+		// FIXME: need to intersect list of active platforms
+		return platforms;
+	}
+
+	private List<Task> initialisePipeline(List<Platform<?>> platforms) {
+		ArrayList<Task> tasks = new ArrayList<>();
+		for(Platform<?> p : platforms) {
+			// FIXME: what goes here?
+			tasks.add(p.initialise(null));
+		}
+		//
+		return tasks;
 	}
 
 	/**
@@ -116,7 +148,7 @@ public class BuildCmd implements Command<Boolean> {
 	 * @param executor
 	 * @throws IOException
 	 */
-	public static void printSyntacticMarkers(PrintStream output, Build.Artifact target) throws IOException {
+	public static void printSyntacticMarkers(PrintStream output, Artifact target) throws IOException {
 		// Extract all syntactic markers from entries in the build graph
 		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
 		// For each marker, print out error messages appropriately
@@ -127,7 +159,7 @@ public class BuildCmd implements Command<Boolean> {
 	}
 
 	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
-			List<? extends Build.Artifact> sources) {
+			List<? extends Artifact> sources) {
 //		// Identify enclosing source file
 //		SourceFile source = getSourceEntry(marker.getSource(), sources);
 //		String filename = source.getPath().toString();
@@ -146,7 +178,7 @@ public class BuildCmd implements Command<Boolean> {
 //		}
 	}
 
-	public static List<Syntactic.Marker> extractSyntacticMarkers(Build.Artifact... binaries) throws IOException {
+	public static List<Syntactic.Marker> extractSyntacticMarkers(Artifact... binaries) throws IOException {
 		List<Syntactic.Marker> annotated = new ArrayList<>();
 		//
 		for (Artifact b : binaries) {

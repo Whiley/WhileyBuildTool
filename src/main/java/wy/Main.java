@@ -18,7 +18,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import jbuildgraph.core.Build;
+import jbuildgraph.core.Build.Artifact;
+import jbuildgraph.core.Build.Platform;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
@@ -46,8 +47,8 @@ public class Main {
 	@SuppressWarnings("unchecked")
 	public static final List<Command.Descriptor<Environment, Boolean>> DEFAULT_COMMANDS = new ArrayList<>() {
 		{
-			add(BuildCmd.DESCRIPTOR);
-			add(HelpCmd.DESCRIPTOR);
+			add(Build.DESCRIPTOR);
+			add(Help.DESCRIPTOR);
 		}
 	};
 
@@ -80,10 +81,10 @@ public class Main {
 		// Construct working directory
 		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(registry, localDir);
 		// Extract build artifacts
-		List<Build.Artifact> artifacts = new ArrayList<>();
+		List<Artifact> artifacts = new ArrayList<>();
 		for (Content content : workingDir) {
-			if (content instanceof Build.Artifact) {
-				artifacts.add((Build.Artifact) content);
+			if (content instanceof Artifact) {
+				artifacts.add((Artifact) content);
 			}
 		}
 		// Construct command environment!
@@ -183,7 +184,7 @@ public class Main {
 		Plugin.Environment env = new Plugin.Environment(logger);
 		// Create default plugin extension points.
 		env.create(Content.Type.class);
-		env.create(Build.Platform.class);
+		env.create(Platform.class);
 		env.create(Command.Descriptor.class);
 		// Determine the set of install plugins
 		List<Trie> plugins = global.matchAll(Trie.fromString("plugins/*"));
