@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.List;
 
 import jbuildgraph.core.Build;
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.core.Content.Type;
@@ -36,7 +35,7 @@ public class Activator implements Plugin.Activator {
 	/**
 	 * A filter for matching utf8 text files.
 	 */
-	private static Content.Filter<Trie, Artifact> TEXT_FILTER = new Content.Filter<>() {
+	private static Content.Filter<Trie, Content> TEXT_FILTER = new Content.Filter<>() {
 
 		@Override
 		public boolean includes(Type<?> ct, Trie key) {
@@ -81,9 +80,10 @@ public class Activator implements Plugin.Activator {
 
 	public static class Task implements Build.Task {
 		@Override
-		public boolean apply(Content.Store<Trie, Artifact> repository) {
+		public boolean apply(Content.Store<Trie, Content> repository) {
 			// Match all source files
 			try {
+				System.out.println("REPO: " + repository);
 				List<?> files = repository.getAll(TEXT_FILTER);
 				// Generate their concatenation
 				System.out.println("FILES: " + files);

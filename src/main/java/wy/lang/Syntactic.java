@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 
 import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
 
 public class Syntactic {
 	/**
@@ -41,7 +42,7 @@ public class Syntactic {
 	 * @author David J. Pearce
 	 *
 	 */
-	public static interface Heap extends Build.Artifact {
+	public static interface Heap extends Content {
 
 		/**
 		 * Get the number of items in the heap.

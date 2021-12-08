@@ -12,7 +12,7 @@ import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 
 
-public class BinaryFile implements Build.Artifact {
+public class BinaryFile implements Content {
 
 	public static Content.Type<BinaryFile> ContentType = new Content.Type<>() {
 
@@ -45,18 +45,8 @@ public class BinaryFile implements Build.Artifact {
 	}
 
 	@Override
-	public Trie getPath() {
-		return path;
-	}
-
-	@Override
-	public Type<? extends Build.Artifact> getContentType() {
+	public Type<BinaryFile> getContentType() {
 		return ContentType;
-	}
-
-	@Override
-	public List<? extends Build.Artifact> getSourceArtifacts() {
-		return Arrays.asList(source);
 	}
 
 	// =========================================================

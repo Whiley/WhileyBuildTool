@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.core.Build.Platform;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
@@ -80,15 +79,8 @@ public class Main {
 		Trie path = lrp.second();
 		// Construct working directory
 		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(registry, localDir);
-		// Extract build artifacts
-		List<Artifact> artifacts = new ArrayList<>();
-		for (Content content : workingDir) {
-			if (content instanceof Artifact) {
-				artifacts.add((Artifact) content);
-			}
-		}
 		// Construct command environment!
-		Environment env = new Environment(penv, artifacts, workingDir);
+		Environment env = new Environment(penv, workingDir, workingDir);
 		// Execute the given command
 		int exitCode = exec(env, path, args);
 		// Done

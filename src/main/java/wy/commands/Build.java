@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 
 import jbuildgraph.core.Build.*;
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jcmdarg.core.Command;
@@ -107,7 +106,7 @@ public class Build implements Command<Boolean> {
 	@Override
 	public Boolean execute() {
 		// Identify the build repository
-		Content.Store<Trie, Artifact> repository = environment.getRepository();
+		Content.Store<Trie, Content> repository = environment.getRepository();
 		System.out.println("[build] execute");
 		// Initialise all build platforms
 		List<Platform<?>> platforms = determineBuildPipeline();
@@ -150,18 +149,18 @@ public class Build implements Command<Boolean> {
 	 * @param executor
 	 * @throws IOException
 	 */
-	public static void printSyntacticMarkers(PrintStream output, Artifact target) throws IOException {
-		// Extract all syntactic markers from entries in the build graph
-		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
-		// For each marker, print out error messages appropriately
-		for (int i = 0; i != items.size(); ++i) {
-			// Log the error message
-			printSyntacticMarkers(output, items.get(i), target.getSourceArtifacts());
-		}
+	public static void printSyntacticMarkers(PrintStream output, Content target) throws IOException {
+//		// Extract all syntactic markers from entries in the build graph
+//		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
+//		// For each marker, print out error messages appropriately
+//		for (int i = 0; i != items.size(); ++i) {
+//			// Log the error message
+//			printSyntacticMarkers(output, items.get(i), target.getSourceArtifacts());
+//		}
 	}
 
 	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
-			List<? extends Artifact> sources) {
+			List<? extends Content> sources) {
 //		// Identify enclosing source file
 //		SourceFile source = getSourceEntry(marker.getSource(), sources);
 //		String filename = source.getPath().toString();
@@ -180,10 +179,10 @@ public class Build implements Command<Boolean> {
 //		}
 	}
 
-	public static List<Syntactic.Marker> extractSyntacticMarkers(Artifact... binaries) throws IOException {
+	public static List<Syntactic.Marker> extractSyntacticMarkers(Content... binaries) throws IOException {
 		List<Syntactic.Marker> annotated = new ArrayList<>();
 		//
-		for (Artifact b : binaries) {
+		for (Content b : binaries) {
 			// If the object in question can be decoded as a syntactic heap then we can look
 			// for syntactic messages.
 			if (b instanceof Syntactic.Heap) {

@@ -1,5 +1,6 @@
 package basic;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,7 +9,6 @@ import java.util.regex.Pattern;
 
 import basic.BinaryFile.Stmt;
 import jbuildgraph.core.Build;
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
@@ -25,7 +25,7 @@ public class CompileTask implements Build.Task {
 	}
 
 	@Override
-	public boolean apply(Content.Store<Trie, Artifact> ledger) {
+	public boolean apply(Content.Store<Trie, Content> ledger) {
 		// FIXME: should read from snapshot or just use source?
 		ArrayList<BinaryFile.Stmt> stmts = new ArrayList<>();
 		//
@@ -55,7 +55,7 @@ public class CompileTask implements Build.Task {
 	}
 
 	public static List<String> getLines(SourceFile source) {
-		String[] lines = new String(source.getBytes()).split("\n");
+		String[] lines = new String(source.getBytes(StandardCharsets.US_ASCII)).split("\n");
 		return Arrays.asList(lines);
 	}
 }

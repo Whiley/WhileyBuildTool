@@ -7,9 +7,10 @@ import java.io.OutputStream;
 import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.util.TextFile;
 
 
-public class SourceFile extends jbuildgraph.core.SourceFile {
+public class SourceFile extends jbuildstore.util.TextFile {
 	public static Content.Type<SourceFile> ContentType = new Content.Type<>() {
 
 		@Override
@@ -48,11 +49,12 @@ public class SourceFile extends jbuildgraph.core.SourceFile {
 	};
 
 	public SourceFile(Trie id, String content) {
-		super(id, content);
+		super(content);
 	}
 
 	@Override
-	public Content.Type<? extends Build.Artifact> getContentType() {
-		return ContentType;
+	public Content.Type<TextFile> getContentType() {
+		// This doesn't make sense to me!
+		return super.ContentTypeASCII;
 	}
 }

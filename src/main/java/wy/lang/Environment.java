@@ -3,7 +3,6 @@ package wy.lang;
 import jcmdarg.core.Command;
 import wy.commands.Root;
 import jbuildgraph.core.Build;
-import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.util.HashMapStore;
@@ -22,20 +21,22 @@ public class Environment {
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
-	private final Content.Store<Trie, Artifact> repository;
+	private final Content.Store<Trie, Content> repository;
 	/**
 	 * The working directory where build artifacts are projected, etc.
 	 */
 	private final Content.Store<Trie, Content> workingRoot;
 
-	public Environment(Plugin.Environment env, Iterable<Artifact> entries, Content.Store<Trie, Content> workingRoot) {
+	public Environment(Plugin.Environment env, Iterable<Content.Entry<Trie, Content>> entries,
+			Content.Store<Trie, Content> workingRoot) {
 		this.env = env;
 		this.root = new Root(env);
 		this.repository = new HashMapStore<>();
 		this.workingRoot = workingRoot;
 		// Initialise store
-		for (Artifact b : entries) {
-			repository.put(b.getPath(), b);
+		for (Content.Entry<Trie, Content> e : entries) {
+			System.out.println("FOUND CONTENT: " + e.get(Content.class));
+			repository.put(e.getKey(), e.get(Content.class));
 		}
 	}
 
@@ -80,7 +81,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public Content.Store<Trie, Artifact> getRepository() {
+	public Content.Store<Trie, Content> getRepository() {
 		return repository;
 	}
 }
