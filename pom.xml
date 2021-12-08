@@ -52,12 +52,12 @@
      <dependency>
       <groupId>org.whiley</groupId>
       <artifactId>jbuildgraph</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1</version>
      </dependency>    
      <dependency>
       <groupId>org.whiley</groupId>
       <artifactId>jbuildstore</artifactId>
-      <version>0.1.1</version>
+      <version>0.1.2</version>
      </dependency>
      <dependency>
       <groupId>org.whiley</groupId>

@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 import jbuildgraph.core.Build.*;
-import jbuildgraph.core.SourceFile;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
+import jbuildstore.core.Content;
 import jcmdarg.core.Command;
 import jcmdarg.core.Option;
 import jcmdarg.util.Options;
@@ -106,6 +106,8 @@ public class Build implements Command<Boolean> {
 
 	@Override
 	public Boolean execute() {
+		// Identify the build repository
+		Content.Store<Trie, Artifact> repository = environment.getRepository();
 		System.out.println("[build] execute");
 		// Initialise all build platforms
 		List<Platform<?>> platforms = determineBuildPipeline();
@@ -115,7 +117,7 @@ public class Build implements Command<Boolean> {
 		System.out.println("[build] run");
 		// Execute pipeline sequentially (for now)
 		for(Task task : tasks) {
-			if(!task.apply(null)) {
+			if(!task.apply(repository)) {
 				// Someone went wrong
 				return false;
 			}
@@ -204,29 +206,29 @@ public class Build implements Command<Boolean> {
 		throw new IllegalArgumentException();
 	}
 
-	private static void printLineHighlight(PrintStream output, Syntactic.Span span, SourceFile.Line enclosing) {
-		// Extract line text
-		String text = enclosing.getText();
-		// Determine start and end of span
-		int start = span.getStart() - enclosing.getOffset();
-		int end = Math.min(text.length() - 1, span.getEnd() - enclosing.getOffset());
-		// NOTE: in the following lines I don't print characters
-		// individually. The reason for this is that it messes up the
-		// ANT task output.
-		output.println(text);
-		// First, mirror indendation
-		String str = "";
-		for (int i = 0; i < start; ++i) {
-			if (text.charAt(i) == '\t') {
-				str += "\t";
-			} else {
-				str += " ";
-			}
-		}
-		// Second, place highlights
-		for (int i = start; i <= end; ++i) {
-			str += "^";
-		}
-		output.println(str);
-	}
+//	private static void printLineHighlight(PrintStream output, Syntactic.Span span, SourceFile.Line enclosing) {
+//		// Extract line text
+//		String text = enclosing.getText();
+//		// Determine start and end of span
+//		int start = span.getStart() - enclosing.getOffset();
+//		int end = Math.min(text.length() - 1, span.getEnd() - enclosing.getOffset());
+//		// NOTE: in the following lines I don't print characters
+//		// individually. The reason for this is that it messes up the
+//		// ANT task output.
+//		output.println(text);
+//		// First, mirror indendation
+//		String str = "";
+//		for (int i = 0; i < start; ++i) {
+//			if (text.charAt(i) == '\t') {
+//				str += "\t";
+//			} else {
+//				str += " ";
+//			}
+//		}
+//		// Second, place highlights
+//		for (int i = start; i <= end; ++i) {
+//			str += "^";
+//		}
+//		output.println(str);
+//	}
 }

@@ -13,12 +13,15 @@
 // limitations under the License.
 package concat;
 
+import java.io.IOException;
 import java.util.List;
 
 import jbuildgraph.core.Build;
 import jbuildgraph.core.Build.Artifact;
 import jbuildgraph.util.Trie;
-import jbuildstore.core.Content.Ledger;
+import jbuildstore.core.Content;
+import jbuildstore.core.Content.Type;
+import jbuildstore.util.TextFile;
 import wy.lang.Plugin;
 import wy.lang.Plugin.Context;
 
@@ -30,6 +33,19 @@ import wy.lang.Plugin.Context;
  *
  */
 public class Activator implements Plugin.Activator {
+	/**
+	 * A filter for matching utf8 text files.
+	 */
+	private static Content.Filter<Trie, Artifact> TEXT_FILTER = new Content.Filter<>() {
+
+		@Override
+		public boolean includes(Type<?> ct, Trie key) {
+			System.out.println("LOOKING AT: " + key + ":" + ct);
+			return ct == TextFile.ContentTypeASCII;
+		}
+
+	};
+
 	/**
 	 * The build platform is responsible for initialising the concat task within a
 	 * given environment. It is registered with the build system so that it can be
@@ -48,6 +64,8 @@ public class Activator implements Plugin.Activator {
 	@Override
 	public Plugin start(Context context) {
 		context.logTimedMessage("[Concat] starting!", 0, 0);
+		// Register ASCII as default encoding of ".txt" files.
+		context.register(Content.Type.class, TextFile.ContentTypeASCII);
 		// Register build platform
 		context.register(Build.Platform.class, PLATFORM);
 		//
@@ -62,24 +80,20 @@ public class Activator implements Plugin.Activator {
 	}
 
 	public static class Task implements Build.Task {
-
 		@Override
-		public List<Artifact> requires() {
-			// TODO Auto-generated method stub
-			return null;
+		public boolean apply(Content.Store<Trie, Artifact> repository) {
+			// Match all source files
+			try {
+				List<?> files = repository.getAll(TEXT_FILTER);
+				// Generate their concatenation
+				System.out.println("FILES: " + files);
+				// Write out the dump
+				return true;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
 		}
-
-		@Override
-		public List<Artifact> ensures() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean apply(Ledger<Trie, Artifact> repository) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
 	}
 }

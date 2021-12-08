@@ -25,7 +25,7 @@ public class CompileTask implements Build.Task {
 	}
 
 	@Override
-	public boolean apply(Content.Ledger<Trie, Artifact> ledger) {
+	public boolean apply(Content.Store<Trie, Artifact> ledger) {
 		// FIXME: should read from snapshot or just use source?
 		ArrayList<BinaryFile.Stmt> stmts = new ArrayList<>();
 		//
@@ -37,16 +37,6 @@ public class CompileTask implements Build.Task {
 //		//
 //		return true;
 		//
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public List<Artifact> requires() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public List<Artifact> ensures() {
 		throw new UnsupportedOperationException();
 	}
 

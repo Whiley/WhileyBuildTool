@@ -1,7 +1,5 @@
 package wy.lang;
 
-import java.util.Iterator;
-
 import jcmdarg.core.Command;
 import wy.commands.Root;
 import jbuildgraph.core.Build;
@@ -46,12 +44,13 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public Iterable<Command.Descriptor<Environment,Boolean>> getCommandDescriptors() {
+	public Iterable<Command.Descriptor<Environment, Boolean>> getCommandDescriptors() {
 		return (Iterable) env.getAll(Command.Descriptor.class);
 	}
 
 	/**
 	 * Get the list of registered content types.
+	 *
 	 * @return
 	 */
 	public Iterable<Content.Type<? extends Content>> getContentTypes() {
@@ -60,13 +59,28 @@ public class Environment {
 
 	/**
 	 * Get the list of registered build platforms.
+	 *
 	 * @return
 	 */
 	public Iterable<Build.Platform<?>> getBuildPlatforms() {
 		return (Iterable) env.getAll(Build.Platform.class);
 	}
 
+	/**
+	 * Get the root command.
+	 *
+	 * @return
+	 */
 	public Command.Descriptor<Environment, Boolean> getRootDescriptor() {
 		return root;
+	}
+
+	/**
+	 * Get the build repository.
+	 *
+	 * @return
+	 */
+	public Content.Store<Trie, Artifact> getRepository() {
+		return repository;
 	}
 }
