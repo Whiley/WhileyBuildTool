@@ -1,9 +1,9 @@
 [package]
 name = "whiley"
-version = "0.2.0"
-license = "Apache-2.0"
+version = "0.3.0"
+license = "MIT OR Apache-2.0"
 edition = "2018"
-description = "A command-line tool for building Whiley programs"
+description = "A command-line build tool and package manager for Whiley."
 homepage = "http://whiley.org"
 repository = "https://github.com/Whiley/WhileyBuildTool"
 readme = "README.md"
@@ -12,3 +12,4 @@ readme = "README.md"
 name = "wy"
 
 [dependencies]
+clap="2"
