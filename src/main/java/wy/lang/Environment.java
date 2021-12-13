@@ -21,7 +21,7 @@ public class Environment {
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
-	private final Content.Store<Trie, Content> repository;
+	private final HashMapStore<Trie, Content> repository;
 	/**
 	 * The working directory where build artifacts are projected, etc.
 	 */
@@ -35,7 +35,6 @@ public class Environment {
 		this.workingRoot = workingRoot;
 		// Initialise store
 		for (Content.Entry<Trie, Content> e : entries) {
-			System.out.println("FOUND CONTENT: " + e.get(Content.class));
 			repository.put(e.getKey(), e.get(Content.class));
 		}
 	}
@@ -83,5 +82,15 @@ public class Environment {
 	 */
 	public Content.Store<Trie, Content> getRepository() {
 		return repository;
+	}
+
+	/**
+	 * Synchronise repository with working directory.
+	 */
+	public void synchronise() {
+		for(Content.Entry<Trie, Content> e : repository) {
+			System.out.println("WRITING OUT" + e.getKey() + ":" + e.getContentType());
+			workingRoot.put(e.getKey(), e.get(Content.class));
+		}
 	}
 }

@@ -14,6 +14,7 @@
 package concat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import jbuildgraph.core.Build;
@@ -35,7 +36,7 @@ public class Activator implements Plugin.Activator {
 	/**
 	 * A filter for matching utf8 text files.
 	 */
-	private static Content.Filter<Trie, Content> TEXT_FILTER = new Content.Filter<>() {
+	private static Content.Filter<Trie, TextFile> TEXT_FILTER = new Content.Filter<>() {
 
 		@Override
 		public boolean includes(Type<?> ct, Trie key) {
@@ -83,10 +84,16 @@ public class Activator implements Plugin.Activator {
 		public boolean apply(Content.Store<Trie, Content> repository) {
 			// Match all source files
 			try {
-				System.out.println("REPO: " + repository);
-				List<?> files = repository.getAll(TEXT_FILTER);
+				List<? extends TextFile> files = repository.getAll(TEXT_FILTER);
 				// Generate their concatenation
-				System.out.println("FILES: " + files);
+				StringBuffer result = new StringBuffer();
+				for (TextFile tf : files) {
+					// FIXME: this is a bit dumb
+					String s = new String(tf.getBytes(StandardCharsets.US_ASCII));
+					result.append(s);
+				}
+				repository.put(Trie.fromString("output.txt"),
+						new TextFile(TextFile.ContentTypeASCII, result.toString()));
 				// Write out the dump
 				return true;
 			} catch (IOException e) {

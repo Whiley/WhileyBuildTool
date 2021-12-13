@@ -83,6 +83,9 @@ public class Main {
 		Environment env = new Environment(penv, workingDir, workingDir);
 		// Execute the given command
 		int exitCode = exec(env, path, args);
+		// Synchronise everything
+		env.synchronise();
+		workingDir.synchronise();
 		// Done
 		System.exit(exitCode);
 	}

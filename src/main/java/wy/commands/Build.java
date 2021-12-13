@@ -117,7 +117,7 @@ public class Build implements Command<Boolean> {
 		// Execute pipeline sequentially (for now)
 		for(Task task : tasks) {
 			if(!task.apply(repository)) {
-				// Someone went wrong
+				// Something went wrong
 				return false;
 			}
 		}
