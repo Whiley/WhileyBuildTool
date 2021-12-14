@@ -89,7 +89,6 @@ public class Environment {
 	 */
 	public void synchronise() {
 		for(Content.Entry<Trie, Content> e : repository) {
-			System.out.println("WRITING OUT" + e.getKey() + ":" + e.getContentType());
 			workingRoot.put(e.getKey(), e.get(Content.class));
 		}
 	}

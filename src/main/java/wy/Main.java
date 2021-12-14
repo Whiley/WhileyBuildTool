@@ -22,6 +22,7 @@ import jbuildgraph.core.Build.Platform;
 import jbuildgraph.util.Pair;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.core.Key;
 import jbuildstore.util.DirectoryStore;
 import jcmdarg.core.Command;
 import wy.cfg.*;
@@ -78,7 +79,7 @@ public class Main {
 		File localDir = lrp.first();
 		Trie path = lrp.second();
 		// Construct working directory
-		DirectoryStore<Trie, Content> workingDir = new DirectoryStore<>(registry, localDir);
+		DirectoryStore<Key<Trie, Content>, Content> workingDir = new DirectoryStore<>(registry, localDir);
 		// Construct command environment!
 		Environment env = new Environment(penv, workingDir, workingDir);
 		// Execute the given command
@@ -222,7 +223,7 @@ public class Main {
 	 * Used for reading the various configuration files prior to instantiating the
 	 * main tool itself.
 	 */
-	public static SuffixRegistry<Content> BOOT_REGISTRY = new SuffixRegistry<>() {
+	public static SuffixRegistry<Key<Trie, Content>, Content> BOOT_REGISTRY = new SuffixRegistry<>() {
 		{
 			add(ConfigFile.ContentType);
 		}

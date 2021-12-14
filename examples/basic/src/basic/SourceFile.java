@@ -53,7 +53,7 @@ public class SourceFile extends jbuildstore.util.TextFile {
 	}
 
 	@Override
-	public Content.Type<TextFile> getContentType() {
+	public Content.Type<TextFile> contentType() {
 		// This doesn't make sense to me!
 		return super.ContentTypeASCII;
 	}

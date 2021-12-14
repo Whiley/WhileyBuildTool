@@ -73,7 +73,7 @@ public class ConfigFile implements Content {
 	}
 
 	@Override
-	public Content.Type<ConfigFile> getContentType() {
+	public Content.Type<ConfigFile> contentType() {
 		return ConfigFile.ContentType;
 	}
 

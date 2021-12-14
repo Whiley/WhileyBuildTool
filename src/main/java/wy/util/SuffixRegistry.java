@@ -23,8 +23,8 @@ import jbuildstore.core.Content;
 import jbuildstore.core.Content.Type;
 import jbuildstore.core.Key;
 
-public class SuffixRegistry<T extends Content> implements Key.EncoderDecoder<Trie, T, String> {
-	private final HashMap<String, Content.Type<? extends T>> registry = new HashMap<>();
+public class SuffixRegistry<K extends Key<Trie, T>, T extends Content> implements Key.Mapping<K, String> {
+	private final HashMap<String, Content.Type> registry = new HashMap<>();
 
 	/**
 	 * Register a new content type with this registry.
@@ -47,17 +47,23 @@ public class SuffixRegistry<T extends Content> implements Key.EncoderDecoder<Tri
 	}
 
 	@Override
-	public String encode(Type<? extends T> type, Trie key) {
-		for (Map.Entry<String, Content.Type<? extends T>> e : registry.entrySet()) {
-			if (e.getValue() == type) {
-				return key.toString().replace('/', File.separatorChar) + "." + e.getKey();
+	public String encode(K key) {
+		for (Map.Entry<String, Content.Type> e : registry.entrySet()) {
+			if (e.getValue() == key.contentType()) {
+				return key.id().toString().replace('/', File.separatorChar) + "." + e.getKey();
 			}
 		}
 		return null;
 	}
 
 	@Override
-	public Trie decodeKey(String t) {
+	public K decode(String t) {
+		Trie id = decodeKey(t);
+		Type<T> ct = decodeType(t);
+		return new Key<>(id, ct);
+	}
+
+	private Trie decodeKey(String t) {
 		int i = t.lastIndexOf('.');
 		if (i >= 0) {
 			t = t.substring(0,i);
@@ -65,8 +71,8 @@ public class SuffixRegistry<T extends Content> implements Key.EncoderDecoder<Tri
 		return Trie.fromString(t.replace(File.separatorChar, '/'));
 	}
 
-	@Override
-	public Type decodeType(String t) {
+
+	private Type<T> decodeType(String t) {
 		int i = t.lastIndexOf('.');
 		if (i >= 0) {
 			String suffix = t.substring(i + 1);

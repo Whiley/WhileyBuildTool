@@ -45,7 +45,7 @@ public class BinaryFile implements Content {
 	}
 
 	@Override
-	public Type<BinaryFile> getContentType() {
+	public Type<BinaryFile> contentType() {
 		return ContentType;
 	}
 
