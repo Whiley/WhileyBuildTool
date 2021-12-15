@@ -67,11 +67,10 @@ public class Activator implements Plugin.Activator {
 	}
 
 	public static class Task implements Build.Task {
-		private static Key<Trie, ? extends Content> TARGET_ID = new Key<>(Trie.fromString("output.txt"),
-				TextFile.ContentTypeASCII);
+		private static Key<Trie, ?> TARGET_ID = new Key<>(Trie.fromString("output.txt"), TextFile.ContentTypeASCII);
 
 		@Override
-		public boolean apply(Content.Store<Key<Trie, ? extends Content>> repository) {
+		public boolean apply(Content.Store<Key<Trie, ?>> repository) {
 			// Match all source files
 			try {
 				List<? extends TextFile> files = repository.getAll(k -> k.contentType() == TextFile.ContentTypeASCII ? (Key<Trie,TextFile>) k : null);
