@@ -5,6 +5,7 @@ import wy.commands.Root;
 import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.core.Key;
 import jbuildstore.util.HashMapStore;
 
 public class Environment {
@@ -21,21 +22,21 @@ public class Environment {
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
-	private final HashMapStore<Trie, Content> repository;
+	private final HashMapStore<Key<Trie, Content>, Content> repository;
 	/**
 	 * The working directory where build artifacts are projected, etc.
 	 */
-	private final Content.Store<Trie, Content> workingRoot;
+	private final Content.Store<Key<Trie, Content>> workingRoot;
 
-	public Environment(Plugin.Environment env, Iterable<Content.Entry<Trie, Content>> entries,
-			Content.Store<Trie, Content> workingRoot) {
+	public Environment(Plugin.Environment env, Iterable<Content.Entry<Key<Trie, Content>, Content>> entries,
+			Content.Store<Key<Trie, Content>> workingRoot) {
 		this.env = env;
 		this.root = new Root(env);
 		this.repository = new HashMapStore<>();
 		this.workingRoot = workingRoot;
 		// Initialise store
-		for (Content.Entry<Trie, Content> e : entries) {
-			repository.put(e.getKey(), e.get(Content.class));
+		for (Content.Entry<Key<Trie, Content>, Content> e : entries) {
+			repository.put(e.getKey(), e.get());
 		}
 	}
 
@@ -44,6 +45,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterable<Command.Descriptor<Environment, Boolean>> getCommandDescriptors() {
 		return (Iterable) env.getAll(Command.Descriptor.class);
 	}
@@ -53,6 +55,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterable<Content.Type<? extends Content>> getContentTypes() {
 		return (Iterable) env.getAll(Content.Type.class);
 	}
@@ -62,6 +65,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterable<Build.Platform<?>> getBuildPlatforms() {
 		return (Iterable) env.getAll(Build.Platform.class);
 	}
@@ -80,7 +84,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public Content.Store<Trie, Content> getRepository() {
+	public Content.Store<Key<Trie, Content>> getRepository() {
 		return repository;
 	}
 
@@ -88,8 +92,8 @@ public class Environment {
 	 * Synchronise repository with working directory.
 	 */
 	public void synchronise() {
-		for(Content.Entry<Trie, Content> e : repository) {
-			workingRoot.put(e.getKey(), e.get(Content.class));
+		for (Content.Entry<Key<Trie, Content>, Content> e : repository) {
+			workingRoot.put(e.getKey(), e.get());
 		}
 	}
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import jbuildgraph.core.Build.*;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.core.Key;
 import jcmdarg.core.Command;
 import jcmdarg.core.Option;
 import jcmdarg.util.Options;
@@ -106,7 +107,7 @@ public class Build implements Command<Boolean> {
 	@Override
 	public Boolean execute() {
 		// Identify the build repository
-		Content.Store<Trie, Content> repository = environment.getRepository();
+		Content.Store<Key<Trie, Content>> repository = environment.getRepository();
 		System.out.println("[build] execute");
 		// Initialise all build platforms
 		List<Platform<?>> platforms = determineBuildPipeline();
