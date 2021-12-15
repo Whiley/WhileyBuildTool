@@ -107,7 +107,7 @@ public class Build implements Command<Boolean> {
 	@Override
 	public Boolean execute() {
 		// Identify the build repository
-		Content.Store<Key<Trie, Content>> repository = environment.getRepository();
+		Content.Store<Key<Trie, ?>> repository = environment.getRepository();
 		System.out.println("[build] execute");
 		// Initialise all build platforms
 		List<Platform<?>> platforms = determineBuildPipeline();

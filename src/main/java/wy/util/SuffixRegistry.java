@@ -23,7 +23,7 @@ import jbuildstore.core.Content;
 import jbuildstore.core.Content.Type;
 import jbuildstore.core.Key;
 
-public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,T>, String> {
+public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,? extends T>, String> {
 	private final HashMap<String, Content.Type> registry = new HashMap<>();
 
 	/**
@@ -47,7 +47,7 @@ public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,T
 	}
 
 	@Override
-	public String encode(Key<Trie,T> key) {
+	public String encode(Key<Trie,? extends T> key) {
 		for (Map.Entry<String, Content.Type> e : registry.entrySet()) {
 			if (e.getValue() == key.contentType()) {
 				return key.id().toString().replace('/', File.separatorChar) + "." + e.getKey();

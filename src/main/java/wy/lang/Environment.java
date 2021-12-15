@@ -22,20 +22,20 @@ public class Environment {
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
-	private final HashMapStore<Key<Trie, Content>, Content> repository;
+	private final HashMapStore<Key<Trie, ?>> repository;
 	/**
 	 * The working directory where build artifacts are projected, etc.
 	 */
-	private final Content.Store<Key<Trie, Content>> workingRoot;
+	private final Content.Store<Key<Trie, ?>> workingRoot;
 
-	public Environment(Plugin.Environment env, Iterable<Content.Entry<Key<Trie, Content>, Content>> entries,
-			Content.Store<Key<Trie, Content>> workingRoot) {
+	public Environment(Plugin.Environment env, Iterable<Content.Entry<Key<Trie, ?>, Content>> entries,
+			Content.Store<Key<Trie, ?>> workingRoot) {
 		this.env = env;
 		this.root = new Root(env);
-		this.repository = new HashMapStore<>();
+		this.repository = new HashMapStore<Key<Trie, ?>>();
 		this.workingRoot = workingRoot;
 		// Initialise store
-		for (Content.Entry<Key<Trie, Content>, Content> e : entries) {
+		for (Content.Entry<Key<Trie, ?>, Content> e : entries) {
 			repository.put(e.getKey(), e.get());
 		}
 	}
@@ -84,7 +84,7 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public Content.Store<Key<Trie, Content>> getRepository() {
+	public Content.Store<Key<Trie, ?>> getRepository() {
 		return repository;
 	}
 
@@ -92,7 +92,7 @@ public class Environment {
 	 * Synchronise repository with working directory.
 	 */
 	public void synchronise() {
-		for (Content.Entry<Key<Trie, Content>, Content> e : repository) {
+		for (Content.Entry<Key<Trie, ?>, Content> e : repository) {
 			workingRoot.put(e.getKey(), e.get());
 		}
 	}

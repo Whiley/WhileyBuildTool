@@ -20,7 +20,7 @@ import java.util.List;
 import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
-import jbuildstore.core.Content.Type;
+import jbuildstore.core.Key;
 import jbuildstore.util.TextFile;
 import wy.lang.Plugin;
 import wy.lang.Plugin.Context;
@@ -33,19 +33,6 @@ import wy.lang.Plugin.Context;
  *
  */
 public class Activator implements Plugin.Activator {
-	/**
-	 * A filter for matching utf8 text files.
-	 */
-	private static Content.Filter<Trie, TextFile> TEXT_FILTER = new Content.Filter<>() {
-
-		@Override
-		public boolean includes(Type<?> ct, Trie key) {
-			System.out.println("LOOKING AT: " + key + ":" + ct);
-			return ct == TextFile.ContentTypeASCII;
-		}
-
-	};
-
 	/**
 	 * The build platform is responsible for initialising the concat task within a
 	 * given environment. It is registered with the build system so that it can be
@@ -80,11 +67,14 @@ public class Activator implements Plugin.Activator {
 	}
 
 	public static class Task implements Build.Task {
+		private static Key<Trie, ? extends Content> TARGET_ID = new Key<>(Trie.fromString("output.txt"),
+				TextFile.ContentTypeASCII);
+
 		@Override
-		public boolean apply(Content.Store<Trie, Content> repository) {
+		public boolean apply(Content.Store<Key<Trie, ? extends Content>> repository) {
 			// Match all source files
 			try {
-				List<? extends TextFile> files = repository.getAll(TEXT_FILTER);
+				List<? extends TextFile> files = repository.getAll(k -> k.contentType() == TextFile.ContentTypeASCII ? (Key<Trie,TextFile>) k : null);
 				// Generate their concatenation
 				StringBuffer result = new StringBuffer();
 				for (TextFile tf : files) {
@@ -92,8 +82,7 @@ public class Activator implements Plugin.Activator {
 					String s = new String(tf.getBytes(StandardCharsets.US_ASCII));
 					result.append(s);
 				}
-				repository.put(Trie.fromString("output.txt"),
-						new TextFile(TextFile.ContentTypeASCII, result.toString()));
+				repository.put(TARGET_ID, new TextFile(TextFile.ContentTypeASCII, result.toString()));
 				// Write out the dump
 				return true;
 			} catch (IOException e) {

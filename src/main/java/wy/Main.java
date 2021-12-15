@@ -44,7 +44,6 @@ import wy.util.SuffixRegistry;
  */
 public class Main {
 
-	@SuppressWarnings("unchecked")
 	public static final List<Command.Descriptor<Environment, Boolean>> DEFAULT_COMMANDS = new ArrayList<>() {
 		{
 			add(Build.DESCRIPTOR);
@@ -61,7 +60,7 @@ public class Main {
 		SuffixRegistry<Content> registry = new SuffixRegistry<>();
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
-		DirectoryStore<Key<Trie, Content>, Content> SystemDir = determineSystemRoot();
+		DirectoryStore<Key<Trie, ?>> SystemDir = determineSystemRoot();
 		// Read the system configuration file
 		Configuration system = readConfigFile(SystemDir, Trie.fromString("wy"), logger, Schemas.SYSTEM_CONFIG_SCHEMA);
 		// Construct plugin environment and activate plugins
@@ -79,7 +78,7 @@ public class Main {
 		File localDir = lrp.first();
 		Trie path = lrp.second();
 		// Construct working directory
-		DirectoryStore<Key<Trie, Content>, Content> workingDir = new DirectoryStore<>(registry, localDir);
+		DirectoryStore<Key<Trie, ?>> workingDir = new DirectoryStore<Key<Trie, ?>>(registry, localDir);
 		// Construct command environment!
 		Environment env = new Environment(penv, workingDir, workingDir);
 		// Execute the given command
@@ -130,13 +129,13 @@ public class Main {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryStore<Key<Trie, Content>, Content> determineSystemRoot() throws IOException {
+	private static DirectoryStore<Key<Trie, ?>> determineSystemRoot() throws IOException {
 		String whileyhome = System.getenv("WHILEYHOME");
 		if (whileyhome == null) {
 			System.err.println("error: WHILEYHOME environment variable not set");
 			System.exit(-1);
 		}
-		return new DirectoryStore<>(BOOT_REGISTRY, new File(whileyhome));
+		return new DirectoryStore<Key<Trie, ?>>(BOOT_REGISTRY, new File(whileyhome));
 	}
 
 	/**
@@ -242,7 +241,7 @@ public class Main {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Configuration readConfigFile(DirectoryStore<Key<Trie, Content>, Content> root, Trie id, Logger logger,
+	public static Configuration readConfigFile(DirectoryStore<Key<Trie, ?>> root, Trie id, Logger logger,
 			Configuration.Schema... schemas) throws IOException {
 		// Combine schemas together
 		Configuration.Schema schema = Configuration.toCombinedSchema(schemas);
