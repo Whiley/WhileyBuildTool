@@ -60,7 +60,11 @@ public class SuffixRegistry implements Key.Map<Trie, String> {
 	public Key<Trie,?> decode(String t) {
 		Trie id = decodeKey(t);
 		Type<?> ct = decodeType(t);
-		return new Key.Pair<>(id, ct);
+		if(id == null || ct == null) {
+			return null;
+		} else {
+			return new Key.Pair<>(id, ct);
+		}
 	}
 
 	private Trie decodeKey(String t) {

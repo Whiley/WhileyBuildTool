@@ -67,13 +67,14 @@ public class Activator implements Plugin.Activator {
 	}
 
 	public static class Task implements Build.Task {
-		private static Key<Trie, ?> TARGET_ID = new Key<>(Trie.fromString("output.txt"), TextFile.ContentTypeASCII);
+		private static final Key<Trie, TextFile> TARGET_ID = new Key.Pair<>(Trie.fromString("output.txt"), TextFile.ContentTypeASCII);
+		private static final Trie SRC_INCLUDES = Trie.fromString("src/*");
 
 		@Override
-		public boolean apply(Content.Store<Key<Trie, ?>> repository) {
+		public boolean apply(Content.Store<Trie> repository) {
 			// Match all source files
 			try {
-				List<? extends TextFile> files = repository.getAll(k -> k.contentType() == TextFile.ContentTypeASCII ? (Key<Trie,TextFile>) k : null);
+				List<? extends TextFile> files = repository.getAll(k -> k.contentType() == TextFile.ContentTypeASCII && SRC_INCLUDES.matches(k.id()));
 				// Generate their concatenation
 				StringBuffer result = new StringBuffer();
 				for (TextFile tf : files) {
