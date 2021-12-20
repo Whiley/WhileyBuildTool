@@ -23,8 +23,8 @@ import jbuildstore.core.Content;
 import jbuildstore.core.Content.Type;
 import jbuildstore.core.Key;
 
-public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,? extends T>, String> {
-	private final HashMap<String, Content.Type> registry = new HashMap<>();
+public class SuffixRegistry implements Key.Map<Trie, String> {
+	private final HashMap<String, Content.Type<?>> registry = new HashMap<>();
 
 	/**
 	 * Register a new content type with this registry.
@@ -32,7 +32,7 @@ public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,?
 	 * @param suffix
 	 * @param ct
 	 */
-	public void add(Content.Type<? extends T> ct) {
+	public void add(Content.Type<?> ct) {
 		this.registry.put(ct.suffix(), ct);
 	}
 
@@ -40,15 +40,15 @@ public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,?
 	 * Register a list of zero or more content types with this registry.
 	 * @param cts
 	 */
-	public void addAll(List<Content.Type<? extends T>> cts) {
-		for(Content.Type<? extends T> ct : cts) {
+	public void addAll(List<Content.Type<?>> cts) {
+		for(Content.Type<?> ct : cts) {
 			add(ct);
 		}
 	}
 
 	@Override
-	public String encode(Key<Trie,? extends T> key) {
-		for (Map.Entry<String, Content.Type> e : registry.entrySet()) {
+	public String encode(Key<Trie,?> key) {
+		for (Map.Entry<String, ?> e : registry.entrySet()) {
 			if (e.getValue() == key.contentType()) {
 				return key.id().toString().replace('/', File.separatorChar) + "." + e.getKey();
 			}
@@ -57,10 +57,10 @@ public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,?
 	}
 
 	@Override
-	public Key<Trie,T> decode(String t) {
+	public Key<Trie,?> decode(String t) {
 		Trie id = decodeKey(t);
-		Type<T> ct = decodeType(t);
-		return new Key<>(id, ct);
+		Type<?> ct = decodeType(t);
+		return new Key.Pair<>(id, ct);
 	}
 
 	private Trie decodeKey(String t) {
@@ -72,7 +72,7 @@ public class SuffixRegistry<T extends Content> implements Key.Mapping<Key<Trie,?
 	}
 
 
-	private Type<T> decodeType(String t) {
+	private Type<?> decodeType(String t) {
 		int i = t.lastIndexOf('.');
 		if (i >= 0) {
 			String suffix = t.substring(i + 1);

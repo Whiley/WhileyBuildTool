@@ -22,21 +22,22 @@ public class Environment {
 	 * The main repository for storing build artifacts and source files which is
 	 * properly versioned.
 	 */
-	private final HashMapStore<Key<Trie, ?>> repository;
+	private final HashMapStore<Trie> repository;
 	/**
 	 * The working directory where build artifacts are projected, etc.
 	 */
-	private final Content.Store<Key<Trie, ?>> workingRoot;
+	private final Content.Store<Trie> workingRoot;
 
-	public Environment(Plugin.Environment env, Iterable<Content.Entry<Key<Trie, ?>, Content>> entries,
-			Content.Store<Key<Trie, ?>> workingRoot) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Environment(Plugin.Environment env, Iterable<Content.Entry<Trie>> entries,
+			Content.Store<Trie> workingRoot) {
 		this.env = env;
 		this.root = new Root(env);
-		this.repository = new HashMapStore<Key<Trie, ?>>();
+		this.repository = new HashMapStore<Trie>();
 		this.workingRoot = workingRoot;
 		// Initialise store
-		for (Content.Entry<Key<Trie, ?>, Content> e : entries) {
-			repository.put(e.getKey(), e.get());
+		for (Content.Entry<Trie> e : entries) {
+			repository.put((Key) e.getKey(), e.get());
 		}
 	}
 
@@ -84,16 +85,17 @@ public class Environment {
 	 *
 	 * @return
 	 */
-	public Content.Store<Key<Trie, ?>> getRepository() {
+	public Content.Store<Trie> getRepository() {
 		return repository;
 	}
 
 	/**
 	 * Synchronise repository with working directory.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void synchronise() {
-		for (Content.Entry<Key<Trie, ?>, Content> e : repository) {
-			workingRoot.put(e.getKey(), e.get());
+		for (Content.Entry<Trie> e : repository) {
+			workingRoot.put((Key) e.getKey(), e.get());
 		}
 	}
 }

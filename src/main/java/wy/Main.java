@@ -57,10 +57,10 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		Logger logger = BOOT_LOGGER;
-		SuffixRegistry<Content> registry = new SuffixRegistry<>();
+		SuffixRegistry registry = new SuffixRegistry();
 		// Determine system-wide directory. This contains configuration relevant to the
 		// entire ecosystem, such as the set of active plugins.
-		DirectoryStore<Key<Trie, ?>> SystemDir = determineSystemRoot();
+		DirectoryStore<Trie> SystemDir = determineSystemRoot();
 		// Read the system configuration file
 		Configuration system = readConfigFile(SystemDir, Trie.fromString("wy"), logger, Schemas.SYSTEM_CONFIG_SCHEMA);
 		// Construct plugin environment and activate plugins
@@ -78,7 +78,7 @@ public class Main {
 		File localDir = lrp.first();
 		Trie path = lrp.second();
 		// Construct working directory
-		DirectoryStore<Key<Trie, ?>> workingDir = new DirectoryStore<Key<Trie, ?>>(registry, localDir);
+		DirectoryStore<Trie> workingDir = new DirectoryStore<Trie>(registry, localDir);
 		// Construct command environment!
 		Environment env = new Environment(penv, workingDir, workingDir);
 		// Execute the given command
@@ -129,13 +129,13 @@ public class Main {
 	 * @return
 	 * @throws IOException
 	 */
-	private static DirectoryStore<Key<Trie, ?>> determineSystemRoot() throws IOException {
+	private static DirectoryStore<Trie> determineSystemRoot() throws IOException {
 		String whileyhome = System.getenv("WHILEYHOME");
 		if (whileyhome == null) {
 			System.err.println("error: WHILEYHOME environment variable not set");
 			System.exit(-1);
 		}
-		return new DirectoryStore<Key<Trie, ?>>(BOOT_REGISTRY, new File(whileyhome));
+		return new DirectoryStore<Trie>(BOOT_REGISTRY, new File(whileyhome));
 	}
 
 	/**
@@ -222,7 +222,7 @@ public class Main {
 	 * Used for reading the various configuration files prior to instantiating the
 	 * main tool itself.
 	 */
-	public static SuffixRegistry<Content> BOOT_REGISTRY = new SuffixRegistry<>() {
+	public static SuffixRegistry BOOT_REGISTRY = new SuffixRegistry() {
 		{
 			add(ConfigFile.ContentType);
 		}
@@ -241,13 +241,13 @@ public class Main {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Configuration readConfigFile(DirectoryStore<Key<Trie, ?>> root, Trie id, Logger logger,
+	public static Configuration readConfigFile(DirectoryStore<Trie> root, Trie id, Logger logger,
 			Configuration.Schema... schemas) throws IOException {
 		// Combine schemas together
 		Configuration.Schema schema = Configuration.toCombinedSchema(schemas);
 		try {
 			// Read the configuration file
-			ConfigFile cf = root.get(new Key<>(id, ConfigFile.ContentType));
+			ConfigFile cf = root.get(new Key.Pair<>(id, ConfigFile.ContentType));
 			// Sanity check we found something
 			if (cf == null) {
 				logger.logTimedMessage("Not found " + root.getDirectory() + "/" + id + ".toml", 0, 0);
