@@ -13,17 +13,15 @@
 // limitations under the License.
 package basic;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import jbuildgraph.core.Build;
 import jbuildstore.core.Content;
 import jcmdarg.core.Command;
 import jcmdarg.core.Command.Arguments;
 import jcmdarg.core.Option.Descriptor;
 
-import wy.cfg.Configuration;
-import wy.cfg.Configuration.Schema;
 import wy.lang.Plugin;
 import wy.lang.Environment;
 import wy.lang.Plugin.Context;
@@ -34,7 +32,7 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public String getName() {
-			return "hello";
+			return "basic";
 		}
 
 		@Override
@@ -66,15 +64,30 @@ public class Activator implements Plugin.Activator {
 
 	};
 
+	/**
+	 * The build platform is responsible for initialising the concat task within a
+	 * given environment. It is registered with the build system so that it can be
+	 * used when `wy build` is executed.
+	 */
+	public Build.Platform<String> BASIC_PLATFORM = new Build.Platform<>() {
+
+		@Override
+		public CompileTask initialise(String context) {
+			System.out.println("Initialise basic platform");
+			return new CompileTask();
+		}
+
+	};
+
 	@Override
 	public Plugin start(Context context) {
 		System.out.println("BASIC PLUGIN STARTING!");
-		// Register platform
-		//context.register(Command.Platform.class, BASIC_PLATFORM);
-		// List of content types
+		// Register relevant content types
 		context.register(Content.Type.class, SourceFile.ContentType);
-		context.register(Content.Type.class, BinaryFile.ContentType);
-		//
+		context.register(Content.Type.class, BasicFile.ContentType);
+		// Register build platform
+		context.register(Build.Platform.class, BASIC_PLATFORM);
+		// Done
 		return new Plugin() {
 
 		};
@@ -84,5 +97,4 @@ public class Activator implements Plugin.Activator {
 	public void stop(Plugin module, Context context) {
 		System.out.println("BASIC PLUGIN FINISHING!");
 	}
-
 }

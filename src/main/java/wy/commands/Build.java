@@ -128,6 +128,7 @@ public class Build implements Command<Boolean> {
 
 	private List<Platform<?>> determineBuildPipeline() {
 		ArrayList<Platform<?>> platforms = new ArrayList<>();
+		// Add all registers platforms.
 		environment.getBuildPlatforms().forEach(platforms::add);
 		// FIXME: need to intersect list of active platforms
 		return platforms;

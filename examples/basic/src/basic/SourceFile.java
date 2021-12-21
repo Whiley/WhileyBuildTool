@@ -3,58 +3,44 @@ package basic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
-import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.util.TextFile;
 
 
-public class SourceFile extends jbuildstore.util.TextFile {
+public class SourceFile extends TextFile {
 	public static Content.Type<SourceFile> ContentType = new Content.Type<>() {
 
 		@Override
 		public SourceFile read(InputStream input) throws IOException {
-			// TODO Auto-generated method stub
-			return null;
+			// Read all bytes from input stream
+			byte[] bytes = input.readAllBytes();
+			// Convert them into a string
+			return new SourceFile(new String(bytes, StandardCharsets.US_ASCII));
 		}
 
 		@Override
 		public void write(OutputStream output, SourceFile value) throws IOException {
-			// TODO Auto-generated method stub
-
+			// Extract bytes from text file
+			byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
+			// Write them to output stream
+			output.write(bytes);
 		}
 
 		@Override
 		public String suffix() {
-			// TODO Auto-generated method stub
-			return null;
+			return "basic";
 		}
-
-//		@Override
-//		public String getSuffix() {
-//			return "basic";
-//		}
-//
-//		@Override
-//		public SourceFile read(Trie id, InputStream input, Registry registry) throws IOException {
-//			return new SourceFile(id, new String(input.readAllBytes()));
-//		}
-//
-//		@Override
-//		public void write(OutputStream output, SourceFile value) throws IOException {
-//			throw new UnsupportedOperationException();
-//		}
-
 	};
 
-	public SourceFile(Trie id, String content) {
-		super(content);
+	public SourceFile(String content) {
+		super(ContentType, content);
 	}
 
 	@Override
-	public Content.Type<TextFile> contentType() {
-		// This doesn't make sense to me!
-		return super.ContentTypeASCII;
+	public Content.Type<SourceFile> contentType() {
+		return ContentType;
 	}
 }
