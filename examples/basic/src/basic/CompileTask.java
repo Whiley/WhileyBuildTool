@@ -2,6 +2,7 @@ package basic;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import jbuildgraph.core.Build;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.core.Key;
+import jsynheap.util.AbstractCompilationUnit.Tuple;
 
 public class CompileTask implements Build.Task {
 	@Override
@@ -22,23 +24,22 @@ public class CompileTask implements Build.Task {
 			Key<Trie, SourceFile> src_k = new Key.Pair<>(filename, SourceFile.ContentType);
 			Key<Trie, BasicFile> bin_k = new Key.Pair<>(filename, BasicFile.ContentType);
 			SourceFile source = store.get(src_k);
-			HashMap<Integer,BasicFile.Stmt> stmts = new HashMap<>();
+			BasicFile bf = new BasicFile();
+			ArrayList<Stmt> stmts = new ArrayList<Stmt>();
 			//
 			for (String line : getLines(source)) {
 				String[] splits = line.split(" ");
 				//
 				if (splits.length > 0) {
 					int lineno = Integer.parseInt(splits[0]);
-					// Sanity check we don't have
-					if (stmts.containsKey(lineno)) {
-						throw new IllegalArgumentException("duplicate line number encountered!");
-					} else {
-						stmts.put(lineno, parseStatement(splits));
-					}
+					Stmt s = parseStatement(lineno,splits);
+					stmts.add(bf.allocate(s));
 				}
 			}
+			// set the root!
+			bf.setRootItem(new Tuple<>(stmts));
 			//
-			store.put(bin_k, new BasicFile(stmts));
+			store.put(bin_k, bf);
 			//
 			return true;
 		} catch (IOException e) {
@@ -47,33 +48,33 @@ public class CompileTask implements Build.Task {
 		}
 	}
 
-	private Stmt parseStatement(String[] splits) {
+	private Stmt parseStatement(int lineno, String[] splits) {
 		// Determine the statement type
 		String cmd = splits[1];
 		// Dispatch accordingly
 		switch(cmd) {
 		case "PRINT":
-			return parsePrintStatement(splits);
+			return parsePrintStatement(lineno,splits);
 		case "GOTO":
-			return parseGotoStatement(splits);
+			return parseGotoStatement(lineno,splits);
 		default:
 			throw new IllegalArgumentException("Unknown statement encountered");
 		}
 	}
 
-	private Stmt parseGotoStatement(String[] splits) {
+	private Stmt parseGotoStatement(int lineno, String[] splits) {
 		// FIXME: there's plenty that could go wrong here.
-		return new Stmt.Goto(Integer.parseInt(splits[2]));
+		return new Stmt.Goto(lineno,Integer.parseInt(splits[2]));
 	}
 
-	private Stmt parsePrintStatement(String[] splits) {
+	private Stmt parsePrintStatement(int lineno, String[] splits) {
 		if(splits.length != 3) {
 			throw new IllegalArgumentException("invalid print statement");
 		} else {
 			// Parse the expression being printed
 			Expr expr = parseExpression(splits[2]);
 			// Done
-			return new Stmt.Print(expr);
+			return new Stmt.Print(lineno,expr);
 		}
 	}
 
