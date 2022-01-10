@@ -3,27 +3,26 @@ package basic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
-import jbuildgraph.core.Build;
-import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jsynheap.io.HeapReader;
+import jsynheap.io.HeapWriter;
+import jsynheap.lang.SyntacticHeap;
+import jsynheap.util.AbstractCompilationUnit;
 
 
-public class BasicFile implements Content {
+public class BasicFile extends AbstractCompilationUnit implements Content {
 
 	public static Content.Type<BasicFile> ContentType = new Content.Type<>() {
 		@Override
 		public BasicFile read(InputStream input) throws IOException {
-			throw new UnsupportedOperationException();
+			return (BasicFile) new Reader(input).read();
 		}
 
 		@Override
 		public void write(OutputStream output, BasicFile value) throws IOException {
-			throw new UnsupportedOperationException();
+			new Writer(output,schema).write(value);
 		}
 
 		@Override
@@ -110,6 +109,43 @@ public class BasicFile implements Content {
 					throw new IllegalArgumentException("invalid constant encountered");
 				}
 			}
+		}
+	}
+
+	// =========================================================
+	// Binary Representation
+	// =========================================================
+
+	public static Schema SCHEMA;
+
+	public static class Reader extends HeapReader {
+
+		public Reader(InputStream output) {
+			super(output);
+		}
+
+		@Override
+		public SyntacticHeap read() throws IOException {
+			Pair<Integer, Item[]> p = readItems();
+			throw new UnsupportedOperationException("implement me");
+		}
+
+		@Override
+		protected Schema checkHeader() throws IOException {
+			// Currently no header for a basic file!
+			return SCHEMA;
+		}
+	}
+
+	public static class Writer extends HeapWriter {
+
+		public Writer(OutputStream output) {
+			super(output, SCHEMA);
+		}
+
+		@Override
+		public void writeHeader() throws IOException {
+			throw new UnsupportedOperationException("implement me");
 		}
 	}
 }

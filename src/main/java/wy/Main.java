@@ -24,12 +24,12 @@ import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jbuildstore.core.Key;
 import jbuildstore.util.DirectoryStore;
+import jsynheap.lang.Syntactic;
 import jcmdarg.core.Command;
 import wy.cfg.*;
 import wy.commands.*;
 import wy.lang.Environment;
 import wy.lang.Plugin;
-import wy.lang.Syntactic;
 import wy.util.Logger;
 import wy.util.SuffixRegistry;
 

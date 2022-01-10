@@ -24,12 +24,11 @@ import java.util.List;
 import jbuildgraph.core.Build.*;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
-import jbuildstore.core.Key;
 import jcmdarg.core.Command;
 import jcmdarg.core.Option;
 import jcmdarg.util.Options;
+import jsynheap.lang.Syntactic;
 import wy.lang.Environment;
-import wy.lang.Syntactic;
 
 /**
  *

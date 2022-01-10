@@ -49,6 +49,11 @@
   <!-- ============================================== -->
   
   <dependencies>
+   <dependency>
+      <groupId>org.whiley</groupId>
+      <artifactId>jsynheap</artifactId>
+      <version>0.1.1</version>
+     </dependency> 
      <dependency>
       <groupId>org.whiley</groupId>
       <artifactId>jbuildgraph</artifactId>
