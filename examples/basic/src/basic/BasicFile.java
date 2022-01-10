@@ -8,7 +8,7 @@ import java.util.HashMap;
 import jbuildstore.core.Content;
 import jsynheap.io.HeapReader;
 import jsynheap.io.HeapWriter;
-import jsynheap.lang.SyntacticHeap;
+import jsynheap.lang.Syntactic;
 import jsynheap.util.AbstractCompilationUnit;
 
 
@@ -22,7 +22,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 
 		@Override
 		public void write(OutputStream output, BasicFile value) throws IOException {
-			new Writer(output,schema).write(value);
+			new Writer(output).write(value);
 		}
 
 		@Override
@@ -31,10 +31,18 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 		}
 	};
 
-	private final HashMap<Integer,Stmt> stmts;
-
 	public BasicFile(HashMap<Integer,Stmt> stmts) {
 		this.stmts = new HashMap<>();
+	}
+
+	public BasicFile(int root, Syntactic.Item[] items) {
+		// Allocate every item into this heap
+		for (int i = 0; i != items.length; ++i) {
+			syntacticItems.add(items[i]);
+			items[i].allocate(this, i);
+		}
+		// Set the distinguished root item
+		setRootItem(getSyntacticItem(root));
 	}
 
 	@Override
@@ -116,7 +124,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 	// Binary Representation
 	// =========================================================
 
-	public static Schema SCHEMA;
+	public static Syntactic.Schema SCHEMA;
 
 	public static class Reader extends HeapReader {
 
@@ -125,13 +133,13 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 		}
 
 		@Override
-		public SyntacticHeap read() throws IOException {
-			Pair<Integer, Item[]> p = readItems();
-			throw new UnsupportedOperationException("implement me");
+		public Syntactic.Heap read() throws IOException {
+			jbuildgraph.util.Pair<Integer, Syntactic.Item[]> p = readItems();
+			return new BasicFile(p.first(),p.second());
 		}
 
 		@Override
-		protected Schema checkHeader() throws IOException {
+		protected Syntactic.Schema checkHeader() throws IOException {
 			// Currently no header for a basic file!
 			return SCHEMA;
 		}
