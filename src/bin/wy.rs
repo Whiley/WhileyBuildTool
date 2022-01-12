@@ -1,32 +1,73 @@
-use clap::{App, AppSettings};
-use j4rs::{Instance, InvocationArg, Jvm, JvmBuilder, errors::J4RsError};
-use j4rs::MavenArtifact;
+//use clap::{App, AppSettings};
+use std::path::PathBuf;
+use dirs;
+use log::LevelFilter;
+use log::{info};
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::{Appender, Config, Root};
+use whiley::jvm::Jvm;
+use whiley::maven::{MavenArtifact,MavenResolver};
 
-fn main() -> Result<(),J4RsError> {
-    // Create a JVM
-    let jvm = JvmBuilder::new().build()?;
-    //
-    let empty_array = jvm.create_java_array("java.lang.String", &Vec::new())?;
-    let http_components = MavenArtifact::from("org.apache.httpcomponents:httpclient:4.5.13");
-    let jbfs_artifact =  MavenArtifact::from("org.whiley:jbuildfs:1.0.1");
-    let wycc_artifact = MavenArtifact::from("org.whiley:wycc:0.9.9");
-    let wycli_artifact = MavenArtifact::from("org.whiley:wycli:0.9.9");
-    jvm.deploy_artifact(&http_components)?;        
-    jvm.deploy_artifact(&jbfs_artifact)?;    
-    jvm.deploy_artifact(&wycc_artifact)?;
-    jvm.deploy_artifact(&wycli_artifact)?;    
-    //
-    let _static_invocation_result = jvm.invoke_static(
-	"wycli.Main",
-	"main",
-	&[InvocationArg::from(empty_array)],
-    )?;
-    //
-    println!("GOT HERE");
-    //
-    Ok(())
+/// Identify the necessary dependencies (from Maven central) necessary
+/// to run Whiley.  Eventually, the intention is to reduce these
+/// dependencies eventually to nothing.
+static MAVEN_DEPS : &'static [&str] = &["org.whiley:jasm:1.0.2"];
+
+/// Default URL from which to locate Maven dependencies.
+const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2";
+
+fn main() {
+    // Initialise logging
+    init_logging(LevelFilter::Info);
+    // Initialise Whiley home directory
+    let whileyhome = init_whileyhome();
+    // Initialise classpath as necessary.  This will download Jar
+    // files from Maven central (if not already cached).    
+    init_classpath(whileyhome,MAVEN_DEPS);
+    // Construct JVM runner
+    let jvm = Jvm::new(Vec::new());
+    // Go!
+    jvm.exec(&["--version"]);
 }
 
+fn init_logging(level: LevelFilter) {
+    let stdout = ConsoleAppender::builder().build();
+    //
+    let config =
+    Config::builder().appender(Appender::builder().build("stdout",
+    Box::new(stdout))).build(Root::builder().appender("stdout").build(level))
+	.unwrap();
+    //
+    let _handle = log4rs::init_config(config).unwrap();    
+}
+
+fn init_whileyhome() -> PathBuf {
+    // Determine Whiley home directory ($HOME/.whiley)
+    let mut home = dirs::home_dir().unwrap();
+    home.push(".whiley");
+    let whileyhome = home.as_path();
+    // Create Whiley home directory (if doesn't exist)
+    if !whileyhome.exists() {
+	info!("Creating directory {} ...",whileyhome.display());
+    }
+    // Done
+    home
+}
+
+fn init_classpath(mut whileyhome: PathBuf, deps : &[&str]) -> Vec<PathBuf> {
+    // Append maven into Whiley home
+    whileyhome.push("maven");
+    //
+    let resolver = MavenResolver::new(whileyhome, MAVEN_CENTRAL);
+    let mut classpath = Vec::new();
+    //
+    for dep in deps {
+    	let mdep = MavenArtifact::new(dep).unwrap();
+	classpath.push(resolver.get(mdep).unwrap());
+    }
+    // Done
+    classpath
+}
 
 // pub fn main() {
 //     // Parse command-line arguments

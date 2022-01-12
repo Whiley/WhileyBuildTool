@@ -13,4 +13,6 @@ name = "wy"
 
 [dependencies]
 clap="2"
-j4rs="0.13"
+log="0.4"
+log4rs="1"
+dirs="4"
