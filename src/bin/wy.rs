@@ -5,16 +5,26 @@ use log::LevelFilter;
 use log::{info};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
+use reqwest::Url;
 use whiley::jvm::Jvm;
 use whiley::maven::{MavenArtifact,MavenResolver};
 
 /// Identify the necessary dependencies (from Maven central) necessary
 /// to run Whiley.  Eventually, the intention is to reduce these
 /// dependencies eventually to nothing.
-static MAVEN_DEPS : &'static [&str] = &["org.whiley:jasm:1.0.2"];
+static MAVEN_DEPS : &'static [&str] = &[
+    "org.apache.httpcomponents:httpclient:4.5.13",            
+    "org.whiley:jbuildfs:1.0.1",
+    "org.whiley:jmodelgen:0.4.3",
+    "org.whiley:wycc:0.9.9",
+    "org.whiley:wycli:0.9.9",
+    "org.whiley:wyc:0.9.9",
+    "org.whiley:wyjs:0.9.6",
+    "org.whiley:wyboogie:0.3.4"
+];
 
 /// Default URL from which to locate Maven dependencies.
-const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2";
+const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
 
 fn main() {
     // Initialise logging
@@ -23,9 +33,9 @@ fn main() {
     let whileyhome = init_whileyhome();
     // Initialise classpath as necessary.  This will download Jar
     // files from Maven central (if not already cached).    
-    init_classpath(whileyhome,MAVEN_DEPS);
+    let cp = init_classpath(whileyhome,MAVEN_DEPS);
     // Construct JVM runner
-    let jvm = Jvm::new(Vec::new());
+    let jvm = Jvm::new(cp);
     // Go!
     jvm.exec(&["--version"]);
 }
@@ -57,8 +67,11 @@ fn init_whileyhome() -> PathBuf {
 fn init_classpath(mut whileyhome: PathBuf, deps : &[&str]) -> Vec<PathBuf> {
     // Append maven into Whiley home
     whileyhome.push("maven");
-    //
-    let resolver = MavenResolver::new(whileyhome, MAVEN_CENTRAL);
+    // Parse the base URL
+    let base_url = Url::parse(MAVEN_CENTRAL).unwrap();
+    // Construct Maven resolver
+    let resolver = MavenResolver::new(whileyhome, base_url);
+    // Begin
     let mut classpath = Vec::new();
     //
     for dep in deps {

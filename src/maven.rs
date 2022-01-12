@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fs;
 use std::path::{Path,PathBuf};
+use reqwest::Url;
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct MavenArtifact<'a> {
@@ -41,17 +42,18 @@ impl<'a> fmt::Display for MavenArtifact<'a> {
 // ==========================================================
 
 #[derive(Clone,Debug,PartialEq)]
-pub struct MavenResolver<'a,T: AsRef<Path>> {
+pub struct MavenResolver<T: AsRef<Path>> {
     /// Path to cache root on local filesyste
     dir: T,
     /// Base URL for downloading Maven Jars (e.g. Maven Central)
-    url: &'a str
+    url: Url
 }
 
-impl<'a, T: AsRef<Path>> MavenResolver<'a,T> {
-    pub fn new(dir: T, url: &'a str) -> MavenResolver<'a,T> {
+impl<T: AsRef<Path>> MavenResolver<T> {
+    pub fn new(dir: T, url: Url) -> MavenResolver<T> {
 	// Ensure cache directory exists
 	fs::create_dir_all(dir.as_ref()).unwrap();
+	// Done
 	MavenResolver{dir,url}
     }
 
@@ -61,12 +63,27 @@ impl<'a, T: AsRef<Path>> MavenResolver<'a,T> {
 	jar.push(self.dir.as_ref());	
 	jar.push(artifact.to_jarname());
 	//
-	if jar.as_path().exists() {
-	    // Cache hit
-	    Ok(jar)
-	} else {
-	    println!("Cannot find {}",jar.into_os_string().into_string().unwrap());	    
-	    Err(())
+	if !jar.as_path().exists() {
+	    // Cache miss, try to download
+	    let mut s = String::new();
+	    // Turn into method on artifact? Use fold?
+	    s.push_str(artifact.group_id.replace(".","/").as_str());
+	    s.push_str("/");
+	    s.push_str(artifact.artifact_id);
+	    s.push_str("/");
+	    s.push_str(artifact.version);
+	    s.push_str("/");
+	    s.push_str(artifact.to_jarname().as_str());
+	    let url = self.url.join(&s).unwrap();
+	    println!("URL: {}",url.as_str());
+	    // let url = String::new();
+	    // url.push_str(self.url);
+	    // url.push("/");
+	    // url.push(artifact.group_id());
+	    // url.push(
+	    // https://repo1.maven.org/maven2/org/whiley/jasm/1.0.2/jasm-1.0.2.jar
 	}
+	//
+	Ok(jar)
     }
 }
