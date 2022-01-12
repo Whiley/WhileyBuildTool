@@ -1,6 +1,7 @@
 //use clap::{App, AppSettings};
 use std::path::PathBuf;
 use std::env;
+use std::fs;
 use dirs;
 use log::LevelFilter;
 use log::{info};
@@ -27,6 +28,13 @@ static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:wyboogie:0.3.4"
 ];
 
+const DEFAULT_CONFIG : &str = r###"
+[plugins]
+wyc = "wyc.Activator"
+wyjs = "wyjs.Activator"
+wyboogie = "wyboogie.Activator"
+"###;
+
 /// Default URL from which to locate Maven dependencies.
 const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
 
@@ -37,9 +45,9 @@ fn main() {
     let whileyhome = init_whileyhome();
     // Initialise classpath as necessary.  This will download Jar
     // files from Maven central (if not already cached).    
-    let cp = init_classpath(whileyhome,MAVEN_DEPS);
+    let cp = init_classpath(&whileyhome,MAVEN_DEPS);
     // Construct JVM runner
-    let jvm = Jvm::new(cp);
+    let jvm = Jvm::new(cp,vec![("WHILEYHOME",&whileyhome)]);
     // Extract command-line arguments
     let mut args : Vec<String> = env::args().collect();
     // Strip first element (is this program)
@@ -63,24 +71,49 @@ fn init_logging(level: LevelFilter) {
 
 fn init_whileyhome() -> PathBuf {
     // Determine Whiley home directory ($HOME/.whiley)
-    let mut home = dirs::home_dir().unwrap();
-    home.push(".whiley");
-    let whileyhome = home.as_path();
+    let whileyhome = match env::var("WHILEYHOME") {
+	Ok(val) => {
+	    // WHILEYHOME defined, so use it without questions.
+	    PathBuf::from(val)
+	}
+	Err(_) => {
+	    // WHILEYHOME not defined, therefore use default.
+	    default_whileyhome()
+	}
+    };
+    info!("WHILEYHOME is {}",whileyhome.as_path().to_str().unwrap());
     // Create Whiley home directory (if doesn't exist)
-    if !whileyhome.exists() {
+    if !whileyhome.as_path().exists() {
 	info!("Creating directory {} ...",whileyhome.display());
+	fs::create_dir(whileyhome.as_path());
     }
+    // Construct global configuration file
+    let mut config = whileyhome.join("wy.toml");    
+    // Initialise global configuration (if doesn't exist)
+    if !config.as_path().exists() {
+	info!("Creating global configuration {} ...",config.display());	
+	fs::write(config.as_path(),DEFAULT_CONFIG).unwrap();
+    }    
     // Done
-    home
+    whileyhome
 }
 
-fn init_classpath(mut whileyhome: PathBuf, deps : &[&str]) -> Vec<PathBuf> {
+/// Construct a default path for WHILEYHOME which exists relative to
+/// the user's home directory.
+fn default_whileyhome() -> PathBuf {
+    let mut p = dirs::home_dir().unwrap();
+    p.push(".whiley");
+    p
+}
+
+fn init_classpath(whileyhome: &PathBuf, deps : &[&str]) -> Vec<PathBuf> {
     // Append maven into Whiley home
-    whileyhome.push("maven");
+    let mut mavenhome = whileyhome.clone();
+    mavenhome.push("maven");
     // Parse the base URL
     let base_url = Url::parse(MAVEN_CENTRAL).unwrap();
     // Construct Maven resolver
-    let resolver = MavenResolver::new(whileyhome, base_url);
+    let resolver = MavenResolver::new(mavenhome, base_url);
     // Begin
     let mut classpath = Vec::new();
     //

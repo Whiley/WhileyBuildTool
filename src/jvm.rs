@@ -1,14 +1,16 @@
+use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
 use std::io::{self, Write};
 
-pub struct Jvm<T: AsRef<Path>> {
-    classpath: Vec<T>    
+pub struct Jvm<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> {
+    classpath: Vec<T>,
+    env: Vec<(K,V)>
 }
 
-impl<T: AsRef<Path>> Jvm<T> {
-    pub fn new(classpath: Vec<T>) -> Self {
-	Jvm{classpath}
+impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
+    pub fn new(classpath: Vec<T>, env: Vec<(K,V)>) -> Self {
+	Jvm{classpath,env}
     }
 
     pub fn exec(self, _args: &[&str]) {
@@ -28,8 +30,12 @@ impl<T: AsRef<Path>> Jvm<T> {
 	// Configure launcher
 	args.push("wycli.Main");
 	args.extend_from_slice(_args);
-	// Run Java.
-	let output = Command::new("java").args(args).output().expect("Java is not installed");
+	// Run Java!
+	let output = Command::new("java")
+	    .args(args)
+	    .envs(self.env)
+	    .output()
+	    .expect("Java is not installed");	
 	//
 	io::stdout().write_all(&output.stdout).unwrap();
 	io::stderr().write_all(&output.stderr).unwrap();	
