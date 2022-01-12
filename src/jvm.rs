@@ -27,7 +27,7 @@ impl<T: AsRef<Path>> Jvm<T> {
 	args.push(cp.as_str());
 	// Configure launcher
 	args.push("wycli.Main");
-	//args.append(_args);
+	args.extend_from_slice(_args);
 	// Run Java.
 	let output = Command::new("java").args(args).output().expect("Java is not installed");
 	//

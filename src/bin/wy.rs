@@ -1,5 +1,6 @@
 //use clap::{App, AppSettings};
 use std::path::PathBuf;
+use std::env;
 use dirs;
 use log::LevelFilter;
 use log::{info};
@@ -13,6 +14,8 @@ use whiley::maven::{MavenArtifact,MavenResolver};
 /// to run Whiley.  Eventually, the intention is to reduce these
 /// dependencies eventually to nothing.
 static MAVEN_DEPS : &'static [&str] = &[
+    "commons-logging:commons-logging:1.2",
+    "commons-codec:commons-codec:1.11",
     "org.apache.httpcomponents:httpcore:4.4.12",
     "org.apache.httpcomponents:httpclient:4.5.10",            
     "org.whiley:jbuildfs:1.0.1",
@@ -37,8 +40,14 @@ fn main() {
     let cp = init_classpath(whileyhome,MAVEN_DEPS);
     // Construct JVM runner
     let jvm = Jvm::new(cp);
+    // Extract command-line arguments
+    let mut args : Vec<String> = env::args().collect();
+    // Strip first element (is this program)
+    args.remove(0);
+    // Convert into Vec<&str> for exec
+    let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
     // Go!
-    jvm.exec(&["--version"]);
+    jvm.exec(&str_args);
 }
 
 fn init_logging(level: LevelFilter) {

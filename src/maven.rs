@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt;
 use std::fs;
-use std::fs::File;
 use std::path::{Path,PathBuf};
 use log::{info};
 use reqwest;
