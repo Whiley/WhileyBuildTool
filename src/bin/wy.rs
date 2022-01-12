@@ -13,7 +13,8 @@ use whiley::maven::{MavenArtifact,MavenResolver};
 /// to run Whiley.  Eventually, the intention is to reduce these
 /// dependencies eventually to nothing.
 static MAVEN_DEPS : &'static [&str] = &[
-    "org.apache.httpcomponents:httpclient:4.5.13",            
+    "org.apache.httpcomponents:httpcore:4.4.12",
+    "org.apache.httpcomponents:httpclient:4.5.10",            
     "org.whiley:jbuildfs:1.0.1",
     "org.whiley:jmodelgen:0.4.3",
     "org.whiley:wycc:0.9.9",

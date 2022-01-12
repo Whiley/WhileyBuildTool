@@ -1,6 +1,10 @@
+use std::error::Error;
 use std::fmt;
 use std::fs;
+use std::fs::File;
 use std::path::{Path,PathBuf};
+use log::{info};
+use reqwest;
 use reqwest::Url;
 
 #[derive(Clone,Debug,PartialEq)]
@@ -28,6 +32,19 @@ impl<'a> MavenArtifact<'a> {
 	n.push_str(self.version);
 	n.push_str(".jar");
 	n
+    }
+
+    pub fn to_url(&self, base: &Url) -> Url {
+	let mut s = String::new();	
+	s.push_str(self.group_id.replace(".","/").as_str());
+	s.push_str("/");
+	s.push_str(self.artifact_id);
+	s.push_str("/");
+	s.push_str(self.version);
+	s.push_str("/");
+	s.push_str(self.to_jarname().as_str());
+	// ERROR HANDLING
+	base.join(&s).unwrap()
     }
 }
 
@@ -57,7 +74,7 @@ impl<T: AsRef<Path>> MavenResolver<T> {
 	MavenResolver{dir,url}
     }
 
-    pub fn get<'b>(&self, artifact: MavenArtifact<'b>) -> Result<PathBuf,()> {
+    pub fn get<'b>(&self, artifact: MavenArtifact<'b>) -> Result<PathBuf,Box<dyn Error>> {
 	// Determine jar name
 	let mut jar = PathBuf::new();
 	jar.push(self.dir.as_ref());	
@@ -65,23 +82,10 @@ impl<T: AsRef<Path>> MavenResolver<T> {
 	//
 	if !jar.as_path().exists() {
 	    // Cache miss, try to download
-	    let mut s = String::new();
-	    // Turn into method on artifact? Use fold?
-	    s.push_str(artifact.group_id.replace(".","/").as_str());
-	    s.push_str("/");
-	    s.push_str(artifact.artifact_id);
-	    s.push_str("/");
-	    s.push_str(artifact.version);
-	    s.push_str("/");
-	    s.push_str(artifact.to_jarname().as_str());
-	    let url = self.url.join(&s).unwrap();
-	    println!("URL: {}",url.as_str());
-	    // let url = String::new();
-	    // url.push_str(self.url);
-	    // url.push("/");
-	    // url.push(artifact.group_id());
-	    // url.push(
-	    // https://repo1.maven.org/maven2/org/whiley/jasm/1.0.2/jasm-1.0.2.jar
+	    let url = artifact.to_url(&self.url);
+	    info!("Downloading {}",url.as_str());
+	    let response = reqwest::blocking::get(url)?.bytes()?;
+	    fs::write(jar.as_path(),response)?;
 	}
 	//
 	Ok(jar)
