@@ -28,16 +28,16 @@ import wy.lang.Plugin.Context;
 
 public class Activator implements Plugin.Activator {
 
-	public static final Command.Descriptor<Environment,Boolean> COMMAND = new Command.Descriptor<>() {
+	public static final Command.Descriptor<Environment,Boolean> BASIC_RUN = new Command.Descriptor<>() {
 
 		@Override
 		public String getName() {
-			return "basic";
+			return "run";
 		}
 
 		@Override
 		public String getDescription() {
-			return "A simple build platform for basic files";
+			return "A simple runner for basic files";
 		}
 
 		@Override
@@ -47,7 +47,7 @@ public class Activator implements Plugin.Activator {
 
 		@Override
 		public Command<Boolean> initialise(Environment env) {
-			throw new UnsupportedOperationException();
+			return new Interpreter(env);
 		}
 
 		@Override
@@ -87,6 +87,8 @@ public class Activator implements Plugin.Activator {
 		context.register(Content.Type.class, BasicFile.ContentType);
 		// Register build platform
 		context.register(Build.Platform.class, BASIC_PLATFORM);
+		// Register run command
+		context.register(Command.Descriptor.class, BASIC_RUN);
 		// Done
 		return new Plugin() {
 

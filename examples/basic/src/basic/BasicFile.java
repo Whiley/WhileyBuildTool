@@ -3,6 +3,8 @@ package basic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
 import jsynheap.io.HeapReader;
 import jsynheap.io.HeapWriter;
@@ -55,10 +57,12 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 	// Statements
 	// =========================================================
 
-	public static final int STMT_PRINT = 16;
-	public static final int STMT_GOTO = 17;
+	public static final int STMT_print = 16;
+	public static final int STMT_goto = 17;
 	//
-	public static final int EXPR_CONST = 32;
+	public static final int EXPR_const = 32;
+	//
+	public static final int MARK_error = 64;
 
 	public interface Stmt extends Syntactic.Item {
 
@@ -89,7 +93,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 			}
 
 			public Print(Value.Int line, Expr expr) {
-				super(STMT_PRINT,line,expr);
+				super(STMT_print,line,expr);
 			}
 
 			public Expr getExpr() {
@@ -122,7 +126,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 			}
 
 			public Goto(Value.Int line, Value.Int target) {
-				super(STMT_GOTO, line, target);
+				super(STMT_goto, line, target);
 			}
 
 			public int getTarget() {
@@ -158,7 +162,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 				this(new Value.UTF8(c));
 			}
 			public Constant(Value constant) {
-				super(EXPR_CONST,constant);
+				super(EXPR_const,constant);
 			}
 
 			public <T> T getAs(Class<T> kind) {
@@ -197,6 +201,43 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 		}
 	}
 
+	public interface Marker extends Syntactic.Marker {
+		public static class Error extends AbstractItem implements Marker {
+
+			public Error(Syntactic.Item target, Value.UTF8 msg) {
+				super(MARK_error, target, msg);
+			}
+
+			@Override
+			public String getMessage() {
+				return ((Value.UTF8) operands[1]).toString();
+			}
+
+			@Override
+			public Item getTarget() {
+				return operands[0];
+			}
+
+			@Override
+			public Trie getSource() {
+				throw new UnsupportedOperationException("implement me");
+			}
+
+			@Override
+			public Item clone(Item[] operands) {
+				return new Error(operands[0], (Value.UTF8) operands[1]);
+			}
+
+			public static final Descriptor DESCRIPTOR = new Descriptor(Operands.ONE, Data.ZERO, "MARK_error") {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Syntactic.Item construct(int opcode, Syntactic.Item[] operands, byte[] data) {
+					return new Error(operands[0], (Value.UTF8) operands[1]);
+				}
+			};
+		}
+	}
+
 	// =========================================================
 	// Binary Representation
 	// =========================================================
@@ -210,6 +251,7 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 		builder.register("ITEM", 16);
 		builder.register("STMT", 16);
 		builder.register("EXPR", 32);
+		builder.register("MARK", 16);
 		// Items from AbstractCompilationUnit
 		builder.add("ITEM", "null", AbstractCompilationUnit.Value.Null.DESCRIPTOR_0);
 		builder.add("ITEM", "bool", AbstractCompilationUnit.Value.Bool.DESCRIPTOR_0);
@@ -232,6 +274,8 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 		builder.add("STMT", "goto", Stmt.Goto.DESCRIPTOR);
 		// Add expressions
 		builder.add("EXPR", "const", Expr.Constant.DESCRIPTOR);
+		// Add markers
+		builder.add("MARK", "runtime", Marker.Error.DESCRIPTOR);
 		// Done
 		SCHEMA = builder.done();
 	}

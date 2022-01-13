@@ -24,10 +24,12 @@ import java.util.List;
 import jbuildgraph.core.Build.*;
 import jbuildgraph.util.Trie;
 import jbuildstore.core.Content;
+import jbuildstore.util.TextFile;
 import jcmdarg.core.Command;
 import jcmdarg.core.Option;
 import jcmdarg.util.Options;
 import jsynheap.lang.Syntactic;
+import jsynheap.util.AbstractCompilationUnit;
 import wy.lang.Environment;
 
 /**
@@ -144,31 +146,39 @@ public class Build implements Command<Boolean> {
 	}
 
 	/**
-	 * Print out syntactic markers for all entries in the build graph. This requires
-	 * going through all entries, extracting the markers and then printing them.
+	 * Print out all syntactic markers active within a given piece of content.
 	 *
 	 * @param executor
 	 * @throws IOException
 	 */
 	public static void printSyntacticMarkers(PrintStream output, Content target) throws IOException {
-//		// Extract all syntactic markers from entries in the build graph
-//		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
-//		// For each marker, print out error messages appropriately
+		// Extract all syntactic markers from entries in the build graph
+		List<Syntactic.Marker> items = extractSyntacticMarkers(target);
+		// For each marker, print out error messages appropriately
 //		for (int i = 0; i != items.size(); ++i) {
 //			// Log the error message
 //			printSyntacticMarkers(output, items.get(i), target.getSourceArtifacts());
 //		}
+		//
+		System.out.println("Found syntactic makers: " + items);
 	}
 
+	/**
+	 * Print a given syntactic marker.
+	 *
+	 * @param output
+	 * @param marker
+	 * @param sources
+	 */
 	public static void printSyntacticMarkers(PrintStream output, Syntactic.Marker marker,
 			List<? extends Content> sources) {
-//		// Identify enclosing source file
-//		SourceFile source = getSourceEntry(marker.getSource(), sources);
-//		String filename = source.getPath().toString();
-//		//
-//		Span span = marker.getTarget().getAncestor(AbstractCompilationUnit.Attribute.Span.class);
+		// Identify enclosing source file
+//		TextFile source = getSourceEntry(marker.getSource(), sources);
+//		String filename = marker.getSource().toString();
+//		// Determine the source-file span for the given syntactic marker.
+//		Syntactic.Span span = marker.getTarget().getAncestor(AbstractCompilationUnit.Attribute.Span.class);
 //		// Read the enclosing line so we can print it
-//		SourceFile.Line line = source.getEnclosingLine(span.getStart().get().intValue());
+//		TextFile.Line line = source.getEnclosingLine(span.getStart());
 //		// Sanity check we found it
 //		if (line != null) {
 //			// print the error message
@@ -203,32 +213,36 @@ public class Build implements Command<Boolean> {
 	 * @throws IOException
 	 */
 	public static List<Syntactic.Marker> extractSyntacticMarkers(Syntactic.Heap h) throws IOException {
-		throw new IllegalArgumentException();
+		List<Syntactic.Marker> annotated = new ArrayList<>();
+		// FIXME: this just reports all syntactic markers
+		annotated.addAll(h.findAll(Syntactic.Marker.class));
+		//
+		return annotated;
 	}
 
-//	private static void printLineHighlight(PrintStream output, Syntactic.Span span, SourceFile.Line enclosing) {
-//		// Extract line text
-//		String text = enclosing.getText();
-//		// Determine start and end of span
-//		int start = span.getStart() - enclosing.getOffset();
-//		int end = Math.min(text.length() - 1, span.getEnd() - enclosing.getOffset());
-//		// NOTE: in the following lines I don't print characters
-//		// individually. The reason for this is that it messes up the
-//		// ANT task output.
-//		output.println(text);
-//		// First, mirror indendation
-//		String str = "";
-//		for (int i = 0; i < start; ++i) {
-//			if (text.charAt(i) == '\t') {
-//				str += "\t";
-//			} else {
-//				str += " ";
-//			}
-//		}
-//		// Second, place highlights
-//		for (int i = start; i <= end; ++i) {
-//			str += "^";
-//		}
-//		output.println(str);
-//	}
+	private static void printLineHighlight(PrintStream output, Syntactic.Span span, TextFile.Line enclosing) {
+		// Extract line text
+		String text = enclosing.getText();
+		// Determine start and end of span
+		int start = span.getStart() - enclosing.getOffset();
+		int end = Math.min(text.length() - 1, span.getEnd() - enclosing.getOffset());
+		// NOTE: in the following lines I don't print characters
+		// individually. The reason for this is that it messes up the
+		// ANT task output.
+		output.println(text);
+		// First, mirror indendation
+		String str = "";
+		for (int i = 0; i < start; ++i) {
+			if (text.charAt(i) == '\t') {
+				str += "\t";
+			} else {
+				str += " ";
+			}
+		}
+		// Second, place highlights
+		for (int i = start; i <= end; ++i) {
+			str += "^";
+		}
+		output.println(str);
+	}
 }
