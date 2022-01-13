@@ -7,6 +7,7 @@ use log::LevelFilter;
 use log::{info};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
+use log4rs::encode::pattern::{PatternEncoder};
 use reqwest::Url;
 use whiley::jvm::Jvm;
 use whiley::maven::{MavenArtifact,MavenResolver};
@@ -59,11 +60,15 @@ fn main() {
 }
 
 fn init_logging(level: LevelFilter) {
-    let stdout = ConsoleAppender::builder().build();
+    let encoder = PatternEncoder::new("[{l}] {m}{n}");
     //
-    let config =
-    Config::builder().appender(Appender::builder().build("stdout",
-    Box::new(stdout))).build(Root::builder().appender("stdout").build(level))
+    let stdout = ConsoleAppender::builder()
+	.encoder(Box::new(encoder))
+	.build();
+    //
+    let config = Config::builder()
+	.appender(Appender::builder().build("stdout", Box::new(stdout)))
+	.build(Root::builder().appender("stdout").build(level))
 	.unwrap();
     //
     let _handle = log4rs::init_config(config).unwrap();    
