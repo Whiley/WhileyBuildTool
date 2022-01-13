@@ -66,6 +66,8 @@ public class BasicFile extends AbstractCompilationUnit implements Content {
 
 	public interface Stmt extends Syntactic.Item {
 
+		public int getLineNumber();
+
 		/**
 		 * Base for all statements
 		 * @author djp
