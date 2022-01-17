@@ -28,7 +28,6 @@ impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
 	args.push("-cp");
 	args.push(cp.as_str());
 	// Configure launcher
-	args.push("wycli.Main");
 	args.extend_from_slice(_args);
 	// Run Java!
 	let output = Command::new("java")
