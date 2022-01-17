@@ -1,5 +1,6 @@
 pub mod jvm;
 pub mod maven;
+pub mod config;
 
 use std::path::PathBuf;
 use std::env;

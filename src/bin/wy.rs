@@ -1,7 +1,9 @@
 //use clap::{App, AppSettings};
 use std::path::PathBuf;
 use std::env;
+use std::fs;
 use log::LevelFilter;
+use whiley::config::Config;
 use whiley::jvm::Jvm;
 use whiley::{init_logging,init_whileyhome,init_classpath};
 
@@ -27,6 +29,14 @@ fn main() {
     init_logging(LevelFilter::Info);
     // Initialise Whiley home directory
     let whileyhome = init_whileyhome();
+    // Read build configuration
+    let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
+    // Parse build configuration
+    let config = Config::from_str(config_file.as_str());
+    println!("PACKAGE {}",config.package.name);
+    println!("VERSION {}",config.package.version);
+    println!("AUTHORS {:?}",config.package.authors);    
+    println!("PLATFORMS {:?}",config.build.platforms.len());
     // Initialise classpath as necessary.  This will download Jar
     // files from Maven central (if not already cached).    
     let cp = init_classpath(&whileyhome,MAVEN_DEPS);
@@ -36,7 +46,6 @@ fn main() {
     let mut args : Vec<String> = env::args().collect();
     // Replace first element (which is this program)
     args[0] = "wycli.Main".to_string();
-    //args.remove(0);
     // Convert into Vec<&str> for exec
     let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
     // Go!
