@@ -118,10 +118,11 @@ impl<'a> Config<'a> {
         let name = get_string(&toml,&PACKAGE_NAME)?;
         let authors = get_string_array(&toml,&PACKAGE_AUTHORS)?;
         let version = get_string(&toml,&PACKAGE_VERSION)?;
-        let platforms = get_string_array(&toml,&BUILD_PLATFORMS)?;
+        let platforms = get_string_array(&toml,&BUILD_PLATFORMS)?;        
 	// Construct package information
 	let package = Package{name, authors, version};
         // Construct build information
+        let mut ps = Vec::new();        
         for p in &platforms {
             let platform = match registry.get(p) {
                 None => {
@@ -129,9 +130,9 @@ impl<'a> Config<'a> {
                 }
                 Some(v) => v
             };
-            println!("GOT: {}",platform.name());
+            ps.push(platform);
         }
-	let build = Build{platforms:Vec::new()};
+	let build = Build{platforms:ps};
 	// Sanity check configuration!
 	// Done
 	return Ok(Config{package,build});
