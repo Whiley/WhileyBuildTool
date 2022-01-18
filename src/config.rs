@@ -2,6 +2,7 @@ use std::error;
 use std::fmt;
 use toml;
 use toml::{Value};
+use crate::platform::{Platform,PlatformRegistry};
 
 // ===================================================================
 // Errors
@@ -30,7 +31,8 @@ impl fmt::Display for Type {
 pub enum Error {
     ParseError(ParseError),
     Invalid(Key),
-    Expected(Type,Key)
+    Expected(Type,Key),
+    UnknownPlatform(String)
 }
 
 impl fmt::Display for Error {
@@ -46,11 +48,14 @@ impl fmt::Debug for Error {
                 write!(f,"{}",p)
             }
             Error::Invalid(k) => {
-                write!(f,"Invalid key \"{}\"",k)
+                write!(f,"invalid key \"{}\"",k)
             }
             Error::Expected(t,k) => {
-                write!(f,"Expected {} for \"{}\"",t,k)
-            }            
+                write!(f,"expected {} for \"{}\"",t,k)
+            }
+            Error::UnknownPlatform(s) => {
+                write!(f,"unknown build platform \"{}\"",s)
+            }
         }
     }
 }
@@ -95,22 +100,18 @@ pub struct Package {
     pub version: String,
 }
 
-pub struct Platform {
-    pub name: String
+pub struct Build<'a> {
+    pub platforms: Vec<&'a dyn Platform>
 }
 
-pub struct Build {
-    pub platforms: Vec<Platform>
-}
-
-pub struct Config {
+pub struct Config<'a> {
     pub package: Package,
-    pub build: Build
+    pub build: Build<'a>
 }
 
-impl Config {
+impl<'a> Config<'a> {
     /// Parse a give string into a build configuration.
-    pub fn from_str(contents: &str) -> Result<Config,Error> {
+    pub fn from_str(contents: &str, registry: &'a PlatformRegistry<'a>) -> Result<Config<'a>,Error> {
         // Parse TOML configuration file
 	let toml: Value = toml::from_str(contents)?;
         // Extract all required keys
@@ -118,8 +119,18 @@ impl Config {
         let authors = get_string_array(&toml,&PACKAGE_AUTHORS)?;
         let version = get_string(&toml,&PACKAGE_VERSION)?;
         let platforms = get_string_array(&toml,&BUILD_PLATFORMS)?;
-	// TODO: sanity check package information
+	// Construct package information
 	let package = Package{name, authors, version};
+        // Construct build information
+        for p in &platforms {
+            let platform = match registry.get(p) {
+                None => {
+                    return Err(Error::UnknownPlatform(p.to_string()));
+                }
+                Some(v) => v
+            };
+            println!("GOT: {}",platform.name());
+        }
 	let build = Build{platforms:Vec::new()};
 	// Sanity check configuration!
 	// Done
@@ -156,21 +167,21 @@ fn get_key<'a>(toml: &'a Value, key: &Key) -> Option<&'a Value> {
   
     
 fn get_string<'a>(toml: &'a Value, key: &Key) -> Result<String,Error> {
-    let val = match(get_key(toml,key)) {
+    let val = match get_key(toml,key) {
         None => {
             return Err(Error::Invalid(*key));
         }
         Some(v) => v.as_str()
     };
     match val {
-        Some(v) => Ok(val.unwrap().to_string()),
+        Some(v) => Ok(v.to_string()),
         None => Err(Error::Expected(Type::String,*key))
     }
 }
 
 fn get_string_array<'a>(toml: &'a Value, key: &Key) -> Result<Vec<String>,Error> {
     // Sanity check key exists
-    let val = match(get_key(toml,key)) {
+    let val = match get_key(toml,key) {
         None => {
             return Err(Error::Invalid(*key));
         }

@@ -1,12 +1,11 @@
 //use clap::{App, AppSettings};
-use std::path::PathBuf;
 use std::error::Error;
 use std::env;
 use std::fs;
 use log::LevelFilter;
 use whiley::config::Config;
 use whiley::jvm::Jvm;
-use whiley::{init_logging,init_whileyhome,init_classpath};
+use whiley::{init_logging,init_whileyhome,init_classpath,init_registry};
 
 /// Identify the necessary dependencies (from Maven central) necessary
 /// to run Whiley.  Eventually, the intention is to reduce these
@@ -30,10 +29,12 @@ fn main() -> Result<(),Box<dyn Error>> {
     init_logging(LevelFilter::Info);
     // Initialise Whiley home directory
     let whileyhome = init_whileyhome();
+    // Initialise platform registry
+    let registry = init_registry();
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse build configuration
-    let config = Config::from_str(config_file.as_str())?;
+    let config = Config::from_str(config_file.as_str(),&registry)?;
     println!("PACKAGE {}",config.package.name);
     println!("VERSION {}",config.package.version);
     println!("AUTHORS {:?}",config.package.authors);    

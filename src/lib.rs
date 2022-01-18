@@ -1,6 +1,8 @@
 pub mod jvm;
 pub mod maven;
 pub mod config;
+pub mod platform;
+pub mod platforms;
 
 use std::path::PathBuf;
 use std::env;
@@ -12,8 +14,9 @@ use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::{PatternEncoder};
 use reqwest::Url;
-use crate::jvm::Jvm;
 use crate::maven::{MavenArtifact,MavenResolver};
+use crate::platform::PlatformRegistry;
+use crate::platforms::whiley::WHILEY_PLATFORM;
 
 /// Default URL from which to locate Maven dependencies.
 const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
@@ -59,7 +62,7 @@ pub fn init_whileyhome() -> PathBuf {
 	fs::create_dir(whileyhome.as_path());
     }
     // Construct global configuration file
-    let mut config = whileyhome.join("wy.toml");    
+    let config = whileyhome.join("wy.toml");    
     // Initialise global configuration (if doesn't exist)
     if !config.as_path().exists() {
 	info!("Creating global configuration {} ...",config.display());	
@@ -94,4 +97,10 @@ pub fn init_classpath(whileyhome: &PathBuf, deps : &[&str]) -> Vec<PathBuf> {
     }
     // Done
     classpath
+}
+
+pub fn init_registry<'a>() -> PlatformRegistry<'a> {
+    let mut r = PlatformRegistry::new();
+    r.register(&WHILEY_PLATFORM);
+    r
 }

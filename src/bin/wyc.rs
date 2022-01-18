@@ -1,5 +1,4 @@
 //use clap::{App, AppSettings};
-use std::path::PathBuf;
 use std::env;
 use log::LevelFilter;
 use whiley::jvm::Jvm;
