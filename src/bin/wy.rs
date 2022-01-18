@@ -1,5 +1,6 @@
 //use clap::{App, AppSettings};
 use std::path::PathBuf;
+use std::error::Error;
 use std::env;
 use std::fs;
 use log::LevelFilter;
@@ -24,7 +25,7 @@ static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:wyboogie:0.3.4"
 ];
 
-fn main() {
+fn main() -> Result<(),Box<dyn Error>> {
     // Initialise logging
     init_logging(LevelFilter::Info);
     // Initialise Whiley home directory
@@ -32,7 +33,7 @@ fn main() {
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse build configuration
-    let config = Config::from_str(config_file.as_str());
+    let config = Config::from_str(config_file.as_str())?;
     println!("PACKAGE {}",config.package.name);
     println!("VERSION {}",config.package.version);
     println!("AUTHORS {:?}",config.package.authors);    
@@ -50,6 +51,8 @@ fn main() {
     let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
     // Go!
     jvm.exec(&str_args);
+    // Done
+    Ok(())
 }
 
 // pub fn main() {

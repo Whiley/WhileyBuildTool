@@ -1,8 +1,107 @@
+use std::error;
+use std::fmt;
+use toml;
 use toml::{Value};
+
+// ===================================================================
+// Errors
+// ===================================================================
+
+type ParseError = toml::de::Error;
+
+pub enum Type {
+    String,
+    StringArray
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Type::String => {
+                write!(f, "string")
+            }
+            Type::StringArray => {
+                write!(f, "string array")
+            }
+        }
+    }
+}
+
+pub enum Error {
+    ParseError(ParseError),
+    Invalid(Key),
+    Expected(Type,Key)
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "error reading wy.toml file!")
+    }
+}
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::ParseError(p) => {
+                write!(f,"{}",p)
+            }
+            Error::Invalid(k) => {
+                write!(f,"Invalid key \"{}\"",k)
+            }
+            Error::Expected(t,k) => {
+                write!(f,"Expected {} for \"{}\"",t,k)
+            }            
+        }
+    }
+}
+
+impl From<ParseError> for Error {
+    fn from(err: ParseError) -> Error {
+        Error::ParseError(err)
+    }
+}
+
+impl error::Error for Error {}
+
+// ===================================================================
+// Keys
+// ===================================================================
+
+#[derive(Clone,Copy,Debug)]
+pub struct Key(&'static [&'static str]);
+
+impl fmt::Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{}",self.0[0])?;        
+        for s in &self.0[1..] {
+            write!(f,".{}",s)?;            
+        }
+        Ok(())
+    }
+}
 
 // ===================================================================
 // Config
 // ===================================================================
+
+static PACKAGE_NAME : Key = Key(&["package","name"]);
+static PACKAGE_AUTHORS : Key = Key(&["package","authors"]);
+static PACKAGE_VERSION : Key = Key(&["package","version"]);
+static BUILD_PLATFORMS : Key = Key(&["build","platforms"]);
+
+pub struct Package {    
+    pub name: String,
+    pub authors: Vec<String>,
+    pub version: String,
+}
+
+pub struct Platform {
+    pub name: String
+}
+
+pub struct Build {
+    pub platforms: Vec<Platform>
+}
 
 pub struct Config {
     pub package: Package,
@@ -11,68 +110,93 @@ pub struct Config {
 
 impl Config {
     /// Parse a give string into a build configuration.
-    pub fn from_str(contents: &str) -> Config {
-	let toml: Value = toml::from_str(contents).unwrap();
+    pub fn from_str(contents: &str) -> Result<Config,Error> {
+        // Parse TOML configuration file
+	let toml: Value = toml::from_str(contents)?;
+        // Extract all required keys
+        let name = get_string(&toml,&PACKAGE_NAME)?;
+        let authors = get_string_array(&toml,&PACKAGE_AUTHORS)?;
+        let version = get_string(&toml,&PACKAGE_VERSION)?;
+        let platforms = get_string_array(&toml,&BUILD_PLATFORMS)?;
 	// TODO: sanity check package information
-	let package = Package::from_value(&toml["package"]);
-	let build = Build::from_value(&toml["build"]);
+	let package = Package{name, authors, version};
+	let build = Build{platforms:Vec::new()};
 	// Sanity check configuration!
 	// Done
-	return Config{package,build};
+	return Ok(Config{package,build});
     }
-}
-
-// ===================================================================
-// Package
-// ===================================================================
-
-pub struct Package {    
-    pub name: String,
-    pub authors: Vec<String>,
-    pub version: String,
-}
-
-impl Package {
-    pub fn from_value(toml: &Value) -> Package {
-	let name = toml["name"].as_str().unwrap().to_string();
-	let authors = parse_array_string(toml["authors"].as_array().unwrap());
-	let version = toml["version"].as_str().unwrap().to_string();
-	Package{name, authors, version}
-    }
-}
-
-// ===================================================================
-// Build
-// ===================================================================
-
-pub struct Build {
-    pub platforms: Vec<Platform>
-}
-
-impl Build {
-    pub fn from_value(toml: &Value) -> Build {
-	return Build{platforms: Vec::new()};
-    }
-}
-
-// ===================================================================
-// Platform
-// ===================================================================
-
-pub struct Platform {
-    pub name: String
 }
 
 // ===================================================================
 // Generic Helpers
 // ===================================================================
 
-fn parse_array_string(arr: &Vec<Value>) -> Vec<String> {
-    let mut res = Vec::new();
+fn get_key<'a>(toml: &'a Value, key: &Key) -> Option<&'a Value> {
+    let n = key.0.len();
+    // Sanity check
+    match n {
+        0 => None,
+        _ => {
+            // Extract key
+            let mut val = toml;
+            // Traverse key
+            for i in 0..n {                
+                val = match val.get(key.0[i]) {
+                    None => {
+                        return None;
+                    }
+                    Some(v) => v
+                };
+            }
+            //
+            Some(val)    
+        }
+    }
+}
+  
+    
+fn get_string<'a>(toml: &'a Value, key: &Key) -> Result<String,Error> {
+    let val = match(get_key(toml,key)) {
+        None => {
+            return Err(Error::Invalid(*key));
+        }
+        Some(v) => v.as_str()
+    };
+    match val {
+        Some(v) => Ok(val.unwrap().to_string()),
+        None => Err(Error::Expected(Type::String,*key))
+    }
+}
+
+fn get_string_array<'a>(toml: &'a Value, key: &Key) -> Result<Vec<String>,Error> {
+    // Sanity check key exists
+    let val = match(get_key(toml,key)) {
+        None => {
+            return Err(Error::Invalid(*key));
+        }
+        Some(v) => v.as_array()
+    };
+    // Sanity check value is array
+    let arr : &Vec<Value> = match val {
+        None => {
+            return Err(Error::Expected(Type::StringArray,*key));
+        }        
+        Some(v) => {
+            v
+        }                
+    };
+    // Sanity check value is string array    
+    let mut res : Vec<String> = Vec::new();
     //
     for v in arr {
-	res.push(v.as_str().unwrap().to_string());
+        let s = match v.as_str() {
+            None => {
+                return Err(Error::Expected(Type::StringArray,*key));
+            }
+            Some(v) => v                
+        };
+        res.push(s.to_string());
     }
     //
-    res
+    Ok(res)
 }
