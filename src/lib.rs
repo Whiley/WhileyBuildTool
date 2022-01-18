@@ -1,7 +1,6 @@
 pub mod jvm;
 pub mod maven;
 pub mod config;
-pub mod platform;
 pub mod platforms;
 
 use std::path::PathBuf;
@@ -15,7 +14,7 @@ use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::{PatternEncoder};
 use reqwest::Url;
 use crate::maven::{MavenArtifact,MavenResolver};
-use crate::platform::PlatformRegistry;
+use crate::platforms::PlatformRegistry;
 use crate::platforms::whiley::WHILEY_PLATFORM;
 
 /// Default URL from which to locate Maven dependencies.

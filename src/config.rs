@@ -2,7 +2,7 @@ use std::error;
 use std::fmt;
 use toml;
 use toml::{Value};
-use crate::platform::{Platform,PlatformRegistry};
+use crate::platforms::{Platform,PlatformRegistry};
 
 // ===================================================================
 // Errors

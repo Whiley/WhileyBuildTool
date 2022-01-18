@@ -1,4 +1,4 @@
-use crate::platform::Platform;
+use crate::platforms::Platform;
 
 pub struct WhileyPlatform {
 
