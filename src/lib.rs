@@ -4,7 +4,7 @@ pub mod config;
 pub mod build;
 pub mod platform;
 
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 use std::env;
 use std::fs;
 use dirs;
@@ -65,9 +65,9 @@ fn default_whileyhome() -> PathBuf {
     p
 }
 
-pub fn init_classpath(whileyhome: &PathBuf, deps : &[&str]) -> Vec<PathBuf> {
+pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Vec<PathBuf> {
     // Append maven into Whiley home
-    let mut mavenhome = whileyhome.clone();
+    let mut mavenhome = PathBuf::from(whileyhome);
     mavenhome.push("maven");
     // Parse the base URL
     let base_url = Url::parse(MAVEN_CENTRAL).unwrap();

@@ -1,12 +1,11 @@
-use clap::{arg, Arg, App, AppSettings};
+use clap::{arg, App, AppSettings};
 use std::error::Error;
-use std::env;
+use std::path::Path;
 use std::fs;
 use log::LevelFilter;
 use whiley::config::Config;
 use whiley::build::Build;
-use whiley::jvm::Jvm;
-use whiley::{init_logging,init_whileyhome,init_classpath,init_registry};
+use whiley::{init_logging,init_whileyhome,init_registry};
 
 fn main() -> Result<(),Box<dyn Error>> {
     // Parse command-line arguments
@@ -32,18 +31,18 @@ fn main() -> Result<(),Box<dyn Error>> {
     let config = Config::from_str(config_file.as_str())?;
     // Dispatch on outcome
     match matches.subcommand() {
-	Some(("build", _)) => build(&config),
+	Some(("build", _)) => build(&config,&whileyhome),
 	_ => unreachable!()
     }
 }
 
-fn build(config: &Config) -> Result<(),Box<dyn Error>> {
+fn build(config: &Config, whileyhome: &Path) -> Result<(),Box<dyn Error>> {
    // Initialise platform registry
     let registry = init_registry();    
     // Construct build plan
     let build = Build::from_str(&config,&registry)?;
     // Go!
-    build.run();
+    build.run(whileyhome);
     //
     Ok(())
 }

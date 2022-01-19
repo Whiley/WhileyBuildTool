@@ -1,5 +1,8 @@
+use std::path::Path;
+use crate::{init_classpath};
 use crate::config::{Config,Key,Error};
 use crate::platform;
+use crate::platform::{Instance,RustInstance,JavaInstance};
 
 // ===================================================================
 // Build
@@ -46,7 +49,26 @@ impl Build {
     }
 
     /// Run the given build.
-    pub fn run(&self) {
-	todo!("IMPLEMENT ME!");
+    pub fn run(&self, whileyhome: &Path) {
+	// Execute each platform in sequence.
+	for p in &self.platforms {
+	    match p {
+		Instance::Java(i) => {
+		    self.run_java(i,whileyhome)
+		},
+		Instance::Rust(i) => {
+		    todo!("Rust platforms not currently supported")
+		}
+	    }
+	}
     }
+
+    /// Run a Java platform
+    fn run_java(&self, i: &Box<dyn JavaInstance>, whileyhome: &Path) {
+	// Initialise classpath as necessary.  This will download Jar
+	// files from Maven central (if not already cached).    
+	let cp = init_classpath(&whileyhome,i.dependencies());
+	//
+	todo!("Implement Java platform!")
+    }    
 }
