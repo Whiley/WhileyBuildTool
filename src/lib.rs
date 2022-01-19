@@ -1,7 +1,7 @@
 pub mod jvm;
 pub mod maven;
 pub mod config;
-pub mod platforms;
+pub mod platform;
 
 use std::path::PathBuf;
 use std::env;
@@ -14,8 +14,7 @@ use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::{PatternEncoder};
 use reqwest::Url;
 use crate::maven::{MavenArtifact,MavenResolver};
-use crate::platforms::PlatformRegistry;
-use crate::platforms::whiley::WHILEY_PLATFORM;
+use crate::platform::whiley;
 
 /// Default URL from which to locate Maven dependencies.
 const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
@@ -98,8 +97,13 @@ pub fn init_classpath(whileyhome: &PathBuf, deps : &[&str]) -> Vec<PathBuf> {
     classpath
 }
 
-pub fn init_registry<'a>() -> PlatformRegistry<'a> {
-    let mut r = PlatformRegistry::new();
-    r.register(&WHILEY_PLATFORM);
+/// Initialise the default platform registry.  This basically provides
+/// a mechanism for creating platform instances and running them.
+pub fn init_registry<'a>() -> platform::Registry<'a> {
+    let mut r = platform::Registry::new();
+    // Register the Whiley platform.  This takes care of compiling
+    // Whiley files into WyIL file.
+    r.register("whiley",&whiley::DESCRIPTOR);
+    // Done
     r
 }

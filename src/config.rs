@@ -2,7 +2,7 @@ use std::error;
 use std::fmt;
 use toml;
 use toml::{Value};
-use crate::platforms::{Platform,PlatformRegistry};
+use crate::platform;
 
 // ===================================================================
 // Errors
@@ -94,24 +94,28 @@ static PACKAGE_AUTHORS : Key = Key(&["package","authors"]);
 static PACKAGE_VERSION : Key = Key(&["package","version"]);
 static BUILD_PLATFORMS : Key = Key(&["build","platforms"]);
 
+/// Identifies meta-data about the package in question, such its name,
+/// version, etc.
 pub struct Package {    
     pub name: String,
     pub authors: Vec<String>,
     pub version: String,
 }
 
-pub struct Build<'a> {
-    pub platforms: Vec<&'a dyn Platform>
+/// Identifies what build platforms should be used to build the
+/// package.
+pub struct Build {
+    pub platforms: Vec<platform::Instance>
 }
 
-pub struct Config<'a> {
+pub struct Config {
     pub package: Package,
-    pub build: Build<'a>
+    pub build: Build
 }
 
-impl<'a> Config<'a> {
+impl Config {
     /// Parse a give string into a build configuration.
-    pub fn from_str(contents: &str, registry: &'a PlatformRegistry<'a>) -> Result<Config<'a>,Error> {
+    pub fn from_str<'a>(contents: &str, registry: &'a platform::Registry<'a>) -> Result<Config,Error> {
         // Parse TOML configuration file
 	let toml: Value = toml::from_str(contents)?;
         // Extract all required keys
@@ -124,13 +128,14 @@ impl<'a> Config<'a> {
         // Construct build information
         let mut ps = Vec::new();        
         for p in &platforms {
-            let platform = match registry.get(p) {
+            let init = match registry.get(p) {
                 None => {
                     return Err(Error::UnknownPlatform(p.to_string()));
                 }
                 Some(v) => v
             };
-            ps.push(platform);
+	    // TODO: Determine platform state
+            ps.push(init.apply(&toml));
         }
 	let build = Build{platforms:ps};
 	// Sanity check configuration!
