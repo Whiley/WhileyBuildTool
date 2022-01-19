@@ -44,4 +44,9 @@ impl Build {
 	// Done
 	return Ok(Build{name,authors,version,platforms:ps});
     }
+
+    /// Run the given build.
+    pub fn run(&self) {
+	todo!("IMPLEMENT ME!");
+    }
 }

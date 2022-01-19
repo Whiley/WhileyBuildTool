@@ -15,7 +15,7 @@ name = "wy"
 name = "wyc"
 
 [dependencies]
-clap="2"
+clap="3"
 log="0.4"
 log4rs="1"
 dirs="4"

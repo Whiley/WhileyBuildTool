@@ -13,6 +13,13 @@ static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
 // Platform
 // ========================================================================
 
+/// Identify the necessary dependencies (from Maven central) necessary
+/// to run the WhileyCompiler.
+static MAVEN_DEPS : &'static [&str] = &[
+    "org.whiley:jmodelgen:0.4.3",
+    "org.whiley:wyc:0.10.1",
+];
+
 pub struct WhileyPlatform {
     source: String,
     target: String
@@ -21,6 +28,12 @@ pub struct WhileyPlatform {
 impl platform::JavaInstance for WhileyPlatform {
     fn name(&self) -> &'static str {
         "whiley"
+    }
+    fn dependencies(&self) -> &'static [&'static str] {
+	MAVEN_DEPS
+    }
+    fn arguments(&self) -> Vec<String> {
+	vec!["wyc.Main".to_string()]
     }
 }
 

@@ -20,13 +20,6 @@ use crate::platform::whiley;
 /// Default URL from which to locate Maven dependencies.
 const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
 
-const DEFAULT_CONFIG : &str = r###"
-[plugins]
-wyc = "wyc.Activator"
-wyjs = "wyjs.Activator"
-wyboogie = "wyboogie.Activator"
-"###;
-
 pub fn init_logging(level: LevelFilter) {
     let encoder = PatternEncoder::new("[{l}] {m}{n}");
     //
@@ -60,13 +53,6 @@ pub fn init_whileyhome() -> PathBuf {
 	info!("Creating directory {} ...",whileyhome.display());
 	fs::create_dir(whileyhome.as_path());
     }
-    // Construct global configuration file
-    let config = whileyhome.join("wy.toml");    
-    // Initialise global configuration (if doesn't exist)
-    if !config.as_path().exists() {
-	info!("Creating global configuration {} ...",config.display());	
-	fs::write(config.as_path(),DEFAULT_CONFIG).unwrap();
-    }    
     // Done
     whileyhome
 }
