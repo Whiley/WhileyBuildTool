@@ -110,7 +110,8 @@ impl Config {
 	// Done
 	Ok(Config{toml})
     }
-        
+
+    /// Responsible for extracting a string associated with a given key.
     pub fn get_string(&self, key: &Key) -> Result<String,Error> {
 	let val = match self.get_key(key) {
             None => {
@@ -123,7 +124,8 @@ impl Config {
             None => Err(Error::Expected(Type::String,*key))
 	}
     }
-    
+
+    /// Responsible for extracting a string array associated with a given key.
     pub fn get_string_array(&self, key: &Key) -> Result<Vec<String>,Error> {
 	// Sanity check key exists
 	let val = match self.get_key(key) {
@@ -156,7 +158,9 @@ impl Config {
 	//
 	Ok(res)
     }
-    
+
+    /// Responsible for traversing the TOML tree and extracting the
+    /// desired value (if it exists).    
     fn get_key<'a>(&'a self, key: &Key) -> Option<&'a Value> {
 	let n = key.0.len();
 	// Sanity check

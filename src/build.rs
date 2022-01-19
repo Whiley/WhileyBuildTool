@@ -39,7 +39,7 @@ impl Build {
                 Some(v) => v
             };
 	    // TODO: Determine platform state
-            ps.push(init.apply(config));
+            ps.push(init.apply(config)?);
         }
 	// Done
 	return Ok(Build{name,authors,version,platforms:ps});
