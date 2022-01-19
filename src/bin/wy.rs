@@ -1,9 +1,12 @@
 //use clap::{App, AppSettings};
-use std::path::PathBuf;
+use std::error::Error;
 use std::env;
+use std::fs;
 use log::LevelFilter;
+use whiley::config::Config;
+use whiley::build::Build;
 use whiley::jvm::Jvm;
-use whiley::{init_logging,init_whileyhome,init_classpath};
+use whiley::{init_logging,init_whileyhome,init_classpath,init_registry};
 
 /// Identify the necessary dependencies (from Maven central) necessary
 /// to run Whiley.  Eventually, the intention is to reduce these
@@ -22,11 +25,23 @@ static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:wyboogie:0.3.4"
 ];
 
-fn main() {
+fn main() -> Result<(),Box<dyn Error>> {
     // Initialise logging
     init_logging(LevelFilter::Info);
     // Initialise Whiley home directory
     let whileyhome = init_whileyhome();
+    // Initialise platform registry
+    let registry = init_registry();
+    // Read build configuration
+    let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
+    // Parse configuration
+    let config = Config::from_str(config_file.as_str())?;
+    // Construct build plan
+    let build = Build::from_str(&config,&registry)?;    
+    println!("PACKAGE {}",build.name);
+    println!("VERSION {}",build.version);
+    println!("AUTHORS {:?}",build.authors);    
+    println!("PLATFORMS {:?}",build.platforms.len());
     // Initialise classpath as necessary.  This will download Jar
     // files from Maven central (if not already cached).    
     let cp = init_classpath(&whileyhome,MAVEN_DEPS);
@@ -36,11 +51,12 @@ fn main() {
     let mut args : Vec<String> = env::args().collect();
     // Replace first element (which is this program)
     args[0] = "wycli.Main".to_string();
-    //args.remove(0);
     // Convert into Vec<&str> for exec
     let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
     // Go!
     jvm.exec(&str_args);
+    // Done
+    Ok(())
 }
 
 // pub fn main() {
