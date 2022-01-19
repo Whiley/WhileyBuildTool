@@ -1,6 +1,7 @@
 pub mod jvm;
 pub mod maven;
 pub mod config;
+pub mod build;
 pub mod platform;
 
 use std::path::PathBuf;

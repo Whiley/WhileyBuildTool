@@ -1,7 +1,7 @@
 pub mod whiley;
 
 use std::collections::HashMap;
-use toml::Value;
+use crate::config::Config;
 
 // ============================================================
 // Instance
@@ -39,7 +39,9 @@ pub trait RustInstance {
 
 /// A mechanism for programmatically constructing a platform.
 pub trait Descriptor {
-    fn apply<'a>(&self, config: &'a Value)->Instance;
+    /// Apply this descriptor to a given TOML configuration, thereby
+    /// allowing customisation of the platform instantiation.    
+    fn apply<'a>(&self, config: &'a Config)->Instance;
 }
 
 // ============================================================

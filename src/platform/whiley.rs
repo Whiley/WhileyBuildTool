@@ -1,5 +1,7 @@
-use toml::Value;
+use crate::config::{Config,Key};
 use crate::platform;
+
+static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
 
 // ========================================================================
 // Platform
@@ -22,7 +24,9 @@ impl platform::JavaInstance for WhileyPlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Value) -> platform::Instance {
+    fn apply<'a>(&self, config: &'a Config) -> platform::Instance {
+	// Extract configuration (if any)
+	
 	// Construct new instance on the heap
 	let instance = Box::new(WhileyPlatform{});
 	// Return generic instance

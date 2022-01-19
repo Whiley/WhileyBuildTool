@@ -4,6 +4,7 @@ use std::env;
 use std::fs;
 use log::LevelFilter;
 use whiley::config::Config;
+use whiley::build::Build;
 use whiley::jvm::Jvm;
 use whiley::{init_logging,init_whileyhome,init_classpath,init_registry};
 
@@ -33,12 +34,14 @@ fn main() -> Result<(),Box<dyn Error>> {
     let registry = init_registry();
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
-    // Parse build configuration
-    let config = Config::from_str(config_file.as_str(),&registry)?;
-    println!("PACKAGE {}",config.package.name);
-    println!("VERSION {}",config.package.version);
-    println!("AUTHORS {:?}",config.package.authors);    
-    println!("PLATFORMS {:?}",config.build.platforms.len());
+    // Parse configuration
+    let config = Config::from_str(config_file.as_str())?;
+    // Construct build plan
+    let build = Build::from_str(&config,&registry)?;    
+    println!("PACKAGE {}",build.name);
+    println!("VERSION {}",build.version);
+    println!("AUTHORS {:?}",build.authors);    
+    println!("PLATFORMS {:?}",build.platforms.len());
     // Initialise classpath as necessary.  This will download Jar
     // files from Maven central (if not already cached).    
     let cp = init_classpath(&whileyhome,MAVEN_DEPS);

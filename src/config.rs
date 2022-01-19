@@ -2,7 +2,6 @@ use std::error;
 use std::fmt;
 use toml;
 use toml::{Value};
-use crate::platform;
 
 // ===================================================================
 // Errors
@@ -75,6 +74,12 @@ impl error::Error for Error {}
 #[derive(Clone,Copy,Debug)]
 pub struct Key(&'static [&'static str]);
 
+impl Key {
+    pub const fn new(path: &'static [&'static str]) -> Self {
+	Key(path)
+    }
+}
+
 impl fmt::Display for Key {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,"{}",self.0[0])?;        
@@ -89,131 +94,89 @@ impl fmt::Display for Key {
 // Config
 // ===================================================================
 
-static PACKAGE_NAME : Key = Key(&["package","name"]);
-static PACKAGE_AUTHORS : Key = Key(&["package","authors"]);
-static PACKAGE_VERSION : Key = Key(&["package","version"]);
-static BUILD_PLATFORMS : Key = Key(&["build","platforms"]);
-
-/// Identifies meta-data about the package in question, such its name,
-/// version, etc.
-pub struct Package {    
-    pub name: String,
-    pub authors: Vec<String>,
-    pub version: String,
-}
-
-/// Identifies what build platforms should be used to build the
-/// package.
-pub struct Build {
-    pub platforms: Vec<platform::Instance>
-}
-
+/// Essentially a wrapper around a TOML value.
 pub struct Config {
-    pub package: Package,
-    pub build: Build
+    toml: Value
 }
 
 impl Config {
-    /// Parse a give string into a build configuration.
-    pub fn from_str<'a>(contents: &str, registry: &'a platform::Registry<'a>) -> Result<Config,Error> {
+
+    /// Parse a give string into a configuration.  Internally, this
+    /// uses the TOML representation but clients of this module don't
+    /// need to know this.
+    pub fn from_str<'b>(contents: &'b str) -> Result<Config,Error> {
         // Parse TOML configuration file
 	let toml: Value = toml::from_str(contents)?;
-        // Extract all required keys
-        let name = get_string(&toml,&PACKAGE_NAME)?;
-        let authors = get_string_array(&toml,&PACKAGE_AUTHORS)?;
-        let version = get_string(&toml,&PACKAGE_VERSION)?;
-        let platforms = get_string_array(&toml,&BUILD_PLATFORMS)?;        
-	// Construct package information
-	let package = Package{name, authors, version};
-        // Construct build information
-        let mut ps = Vec::new();        
-        for p in &platforms {
-            let init = match registry.get(p) {
-                None => {
-                    return Err(Error::UnknownPlatform(p.to_string()));
-                }
-                Some(v) => v
-            };
-	    // TODO: Determine platform state
-            ps.push(init.apply(&toml));
-        }
-	let build = Build{platforms:ps};
-	// Sanity check configuration!
 	// Done
-	return Ok(Config{package,build});
+	Ok(Config{toml})
     }
-}
-
-// ===================================================================
-// Generic Helpers
-// ===================================================================
-
-fn get_key<'a>(toml: &'a Value, key: &Key) -> Option<&'a Value> {
-    let n = key.0.len();
-    // Sanity check
-    match n {
-        0 => None,
-        _ => {
-            // Extract key
-            let mut val = toml;
-            // Traverse key
-            for i in 0..n {                
-                val = match val.get(key.0[i]) {
-                    None => {
-                        return None;
-                    }
-                    Some(v) => v
-                };
-            }
-            //
-            Some(val)    
-        }
-    }
-}
-  
-    
-fn get_string<'a>(toml: &'a Value, key: &Key) -> Result<String,Error> {
-    let val = match get_key(toml,key) {
-        None => {
-            return Err(Error::Invalid(*key));
-        }
-        Some(v) => v.as_str()
-    };
-    match val {
-        Some(v) => Ok(v.to_string()),
-        None => Err(Error::Expected(Type::String,*key))
-    }
-}
-
-fn get_string_array<'a>(toml: &'a Value, key: &Key) -> Result<Vec<String>,Error> {
-    // Sanity check key exists
-    let val = match get_key(toml,key) {
-        None => {
-            return Err(Error::Invalid(*key));
-        }
-        Some(v) => v.as_array()
-    };
-    // Sanity check value is array
-    let arr : &Vec<Value> = match val {
-        None => {
-            return Err(Error::Expected(Type::StringArray,*key));
-        }        
-        Some(v) => {
-            v
-        }                
-    };
-    // Sanity check value is string array    
-    let mut res : Vec<String> = Vec::new();
-    //
-    for v in arr {
-        let s = match v.as_str() {
+        
+    pub fn get_string(&self, key: &Key) -> Result<String,Error> {
+	let val = match self.get_key(key) {
             None => {
-                return Err(Error::Expected(Type::StringArray,*key));
+		return Err(Error::Invalid(*key));
             }
-            Some(v) => v                
-        };
-        res.push(s.to_string());
+            Some(v) => v.as_str()
+	};
+	match val {
+            Some(v) => Ok(v.to_string()),
+            None => Err(Error::Expected(Type::String,*key))
+	}
     }
-    //
-    Ok(res)
+    
+    pub fn get_string_array(&self, key: &Key) -> Result<Vec<String>,Error> {
+	// Sanity check key exists
+	let val = match self.get_key(key) {
+            None => {
+		return Err(Error::Invalid(*key));
+            }
+            Some(v) => v.as_array()
+	};
+	// Sanity check value is array
+	let arr : &Vec<Value> = match val {
+            None => {
+		return Err(Error::Expected(Type::StringArray,*key));
+            }        
+            Some(v) => {
+		v
+            }                
+	};
+	// Sanity check value is string array    
+	let mut res : Vec<String> = Vec::new();
+	//
+	for v in arr {
+            let s = match v.as_str() {
+		None => {
+                    return Err(Error::Expected(Type::StringArray,*key));
+		}
+		Some(v) => v                
+            };
+            res.push(s.to_string());
+	}
+	//
+	Ok(res)
+    }
+    
+    fn get_key<'a>(&'a self, key: &Key) -> Option<&'a Value> {
+	let n = key.0.len();
+	// Sanity check
+	match n {
+            0 => None,
+            _ => {
+		// Extract key
+		let mut val = &self.toml;
+		// Traverse key
+		for i in 0..n {                
+                    val = match val.get(key.0[i]) {
+			None => {
+                            return None;
+			}
+			Some(v) => v
+                    };
+		}
+		//
+		Some(val)    
+            }
+	}
+    }    
 }
