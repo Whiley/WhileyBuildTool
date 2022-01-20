@@ -28,6 +28,11 @@ pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
 }
 
 // Clean command
+
+// Help command
+
+// Init command
+
 const DEFAULT_CONFIG : &str = r###"[package]
 name="main"
 authors=["Joe Bloggs"]
@@ -68,10 +73,6 @@ pub fn init(_whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     }   
     Ok(())
 }
-
-// Help command
-
-// Init command
 
 // Install command
 
