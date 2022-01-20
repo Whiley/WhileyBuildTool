@@ -52,7 +52,7 @@ pub fn init_whileyhome() -> PathBuf {
     // Create Whiley home directory (if doesn't exist)
     if !whileyhome.as_path().exists() {
 	info!("Creating directory {} ...",whileyhome.display());
-	fs::create_dir(whileyhome.as_path());
+	fs::create_dir(whileyhome.as_path()).unwrap();
     }
     // Done
     whileyhome
