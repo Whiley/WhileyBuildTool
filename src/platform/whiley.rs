@@ -1,6 +1,8 @@
+use std::path::PathBuf;
 use glob::glob;
 use crate::config::{Config,Key,Error};
-use crate::build::{PACKAGE_NAME};
+use crate::build;
+use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 
 /// Default path for whiley source files.
@@ -34,8 +36,9 @@ pub struct WhileyPlatform {
 
 impl WhileyPlatform {
     /// Match all whiley files to be compiled for this package.
-    fn match_includes(&self, matches: &mut Vec<String>) {
-        // TODO: this is all rather ugly if you ask me.
+    fn match_includes(&self) -> Vec<String> {
+        // TODO: this is all rather ugly if you ask me.	
+	let mut matches = Vec::new();
         let mut includes = String::new();
         includes.push_str(self.source.as_str());
         includes.push_str("/");
@@ -51,6 +54,16 @@ impl WhileyPlatform {
                 Err(e) => println!("{:?}", e)
             }
         }
+	// Done
+	matches
+    }
+    // Determine the fully qualified path of the target file.
+    fn target_path(&self) -> PathBuf {
+	let mut bin = PathBuf::from(&self.target);
+	let mut name = self.name.clone();
+	name.push_str(".wyil");	
+	bin.push(&name);
+	bin
     }
 }
 
@@ -79,10 +92,23 @@ impl platform::JavaInstance for WhileyPlatform {
         target.push_str(self.target.as_str());
         args.push(target);
         //
-        self.match_includes(&mut args);
+        args.append(&mut self.match_includes());
         //
         args
-    }    
+    }
+    fn manifest(&self) -> Vec<build::Artifact> {
+	let mut artifacts = Vec::new();
+	// Register the binary artifact
+	let bin = self.target_path();
+	artifacts.push(Artifact::Binary(bin));	
+	for i in self.match_includes() {
+	    let mut p = PathBuf::from(&self.source);
+	    p.push(i);
+	    artifacts.push(Artifact::Source(p));
+	}
+	//
+	artifacts
+    }
 }
 
 // ========================================================================

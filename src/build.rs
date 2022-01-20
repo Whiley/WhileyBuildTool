@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 use log::{info};
 use crate::{init_classpath};
 use crate::config::{Config,Key,Error};
@@ -47,13 +48,18 @@ impl Build {
                 }
                 Some(v) => v
             };
-	    // TODO: Determine platform state
             ps.push(init.apply(config)?);
         }
 	// Done
 	return Ok(Build{name,authors,version,platforms:ps});
     }
 
+    /// Determine the list of know build artifacts.  This includes
+    /// source files, binary files and more.    
+    pub fn manifest(&self) -> Manifest {
+	Manifest::new(self)
+    }
+    
     /// Run the given build.
     pub fn run(&self, whileyhome: &Path) {
 	// Execute each platform in sequence.
@@ -85,4 +91,42 @@ impl Build {
         // Go!
         jvm.exec(&str_args);
     }    
+}
+
+// ===================================================================
+// Manifest
+// ===================================================================
+
+#[derive(Debug)]
+pub enum Artifact {
+    Source(PathBuf),
+    Binary(PathBuf)    
+}
+
+pub struct Manifest {
+    artifacts: Vec<Artifact>
+}
+
+impl Manifest {
+    pub fn new(b: &Build) -> Manifest {
+	let mut artifacts = Vec::new();
+	artifacts.push(Artifact::Source(PathBuf::from("wy.toml")));
+	// Iterator platforms looking for artifacts
+	for i in &b.platforms {
+	    for j in i.manifest() {
+		artifacts.push(j);
+	    }
+	}
+	//
+	Manifest{artifacts}
+    }
+}
+
+impl IntoIterator for Manifest {
+    type Item = Artifact;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    
+    fn into_iter(self) -> Self::IntoIter {
+	self.artifacts.into_iter()
+    }
 }

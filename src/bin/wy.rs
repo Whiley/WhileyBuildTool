@@ -1,7 +1,7 @@
 use clap::{arg, App, AppSettings};
 use std::error::Error;
 use log::LevelFilter;
-use whiley::command::{build,init};
+use whiley::command::{build,clean,init};
 use whiley::{init_logging,init_whileyhome};
 
 fn main() -> Result<(),Box<dyn Error>> {
@@ -14,7 +14,9 @@ fn main() -> Result<(),Box<dyn Error>> {
 	.subcommand(
 	    App::new("build").about("Build local package(s)"))
 	.subcommand(
-	    App::new("init").about("Create a new Whiley package in an existing directory"))	
+	    App::new("init").about("Create a new Whiley package in an existing directory"))
+	.subcommand(
+	    App::new("clean").about("Remove all generated (binary) files"))	
 	.get_matches();
     // Extract top-level flags
     let verbose = matches.is_present("verbose");    
@@ -27,7 +29,8 @@ fn main() -> Result<(),Box<dyn Error>> {
     // Dispatch on outcome
     match matches.subcommand() {
 	Some(("build", _)) => build(&whileyhome),
-	Some(("init", _)) => init(&whileyhome),
+	Some(("clean", _)) => clean(&whileyhome),
+	Some(("init", _)) => init(&whileyhome),	
 	_ => unreachable!()
     }
 }

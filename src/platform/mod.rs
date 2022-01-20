@@ -1,6 +1,7 @@
 pub mod whiley;
 
 use std::collections::HashMap;
+use crate::build;
 use crate::config::{Config,Error};
 
 // ============================================================
@@ -21,6 +22,16 @@ pub enum Instance {
     Rust(Box<dyn RustInstance>)
 }
 
+impl Instance {
+    /// Determine build artifacts relevant to this instance.    
+    pub fn manifest(&self) -> Vec<build::Artifact> {
+	match self {
+	    Instance::Java(i) => i.manifest(),
+	    Instance::Rust(i) => i.manifest()
+	}
+    }
+}
+
 /// Represents a platform implemented in Java.
 pub trait JavaInstance {
     /// Get the name of this platform.
@@ -31,12 +42,16 @@ pub trait JavaInstance {
     /// Determine the command-line arguments which should be passed to
     /// Java.  This includes identifying the main class.
     fn arguments(&self) -> Vec<String>;
+    /// Determine build artifacts relevant to this platform.
+    fn manifest(&self) -> Vec<build::Artifact>;
 }
 
 /// Represents a platform implemented in Rust.
 pub trait RustInstance {
     /// Get the name of this platform.
     fn name(&self) -> &'static str;
+    /// Determine build artifacts relevant to this platform.
+    fn manifest(&self) -> Vec<build::Artifact>;    
 }
 
 // ============================================================
