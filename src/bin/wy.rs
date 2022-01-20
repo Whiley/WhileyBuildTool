@@ -1,84 +1,48 @@
-//use clap::{App, AppSettings};
+use clap::{arg, App, AppSettings};
 use std::error::Error;
-use std::env;
+use std::path::Path;
 use std::fs;
 use log::LevelFilter;
 use whiley::config::Config;
-use whiley::build::Build;
-use whiley::jvm::Jvm;
-use whiley::{init_logging,init_whileyhome,init_classpath,init_registry};
-
-/// Identify the necessary dependencies (from Maven central) necessary
-/// to run Whiley.  Eventually, the intention is to reduce these
-/// dependencies eventually to nothing.
-static MAVEN_DEPS : &'static [&str] = &[
-    "commons-logging:commons-logging:1.2",
-    "commons-codec:commons-codec:1.11",
-    "org.apache.httpcomponents:httpcore:4.4.12",
-    "org.apache.httpcomponents:httpclient:4.5.10",            
-    "org.whiley:jbuildfs:1.0.1",
-    "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wycc:0.9.9",
-    "org.whiley:wycli:0.9.9",
-    "org.whiley:wyc:0.9.9",
-    "org.whiley:wyjs:0.9.6",
-    "org.whiley:wyboogie:0.3.4"
-];
+use whiley::command::Build;
+use whiley::{init_logging,init_whileyhome,init_registry};
 
 fn main() -> Result<(),Box<dyn Error>> {
+    // Parse command-line arguments
+    let matches = App::new("wy")
+	.about("Whiley Build Tool")
+	.version("0.6.0")	
+	.setting(AppSettings::SubcommandRequiredElseHelp)
+	.arg(arg!(--verbose "Show verbose output"))
+	.subcommand(
+	    App::new("build").about("Build local package(s)"))
+	.get_matches();
+    // Extract top-level flags
+    let verbose = matches.is_present("verbose");    
     // Initialise logging
-    init_logging(LevelFilter::Info);
+    if verbose {
+	init_logging(LevelFilter::Info);
+    }
     // Initialise Whiley home directory
     let whileyhome = init_whileyhome();
-    // Initialise platform registry
-    let registry = init_registry();
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse configuration
     let config = Config::from_str(config_file.as_str())?;
-    // Construct build plan
-    let build = Build::from_str(&config,&registry)?;    
-    println!("PACKAGE {}",build.name);
-    println!("VERSION {}",build.version);
-    println!("AUTHORS {:?}",build.authors);    
-    println!("PLATFORMS {:?}",build.platforms.len());
-    // Initialise classpath as necessary.  This will download Jar
-    // files from Maven central (if not already cached).    
-    let cp = init_classpath(&whileyhome,MAVEN_DEPS);
-    // Construct JVM runner
-    let jvm = Jvm::new(cp,vec![("WHILEYHOME",&whileyhome)]);
-    // Extract command-line arguments
-    let mut args : Vec<String> = env::args().collect();
-    // Replace first element (which is this program)
-    args[0] = "wycli.Main".to_string();
-    // Convert into Vec<&str> for exec
-    let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
-    // Go!
-    jvm.exec(&str_args);
-    // Done
-    Ok(())
+    // Dispatch on outcome
+    match matches.subcommand() {
+	Some(("build", _)) => build(&config,&whileyhome),
+	_ => unreachable!()
+    }
 }
 
-// pub fn main() {
-//     // Parse command-line arguments
-//     let matches = App::new("wy")
-// 	.about("Whiley's Build Tool and Package Manager")
-// 	.version("0.6.0")
-// 	.setting(AppSettings::SubcommandRequiredElseHelp)
-// 	.subcommand(
-// 	    App::new("build").about("Build local package(s)"))
-// 	.subcommand(
-// 	    App::new("clean").about("Remove all generated build artifact(s)"))	
-// 	.get_matches();
-//     // Dispatch on outcome
-//     match matches.subcommand() {
-// 	("build", Some(_)) => {
-// 	    println!("Build not implemented yet!");
-// 	}
-// 	("clean", Some(_)) => {
-// 	    println!("Clean not implemented yet!");
-// 	}
-// 	_ => unreachable!()
-//     }
-//     //
-//}
+fn build(config: &Config, whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+   // Initialise platform registry
+    let registry = init_registry();    
+    // Construct build plan
+    let build = Build::from_str(&config,&registry)?;
+    // Go!
+    build.run(whileyhome);
+    //
+    Ok(())
+}
