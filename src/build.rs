@@ -113,9 +113,8 @@ impl Manifest {
 	artifacts.push(Artifact::Source(PathBuf::from("wy.toml")));
 	// Iterator platforms looking for artifacts
 	for i in &b.platforms {
-	    for j in i.manifest() {
-		artifacts.push(j);
-	    }
+	    // Push items from instance manifest
+	    artifacts.extend(i.manifest());
 	}
 	//
 	Manifest{artifacts}
