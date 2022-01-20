@@ -1,5 +1,3 @@
-mod build;
-
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -8,9 +6,7 @@ use crate::config::Config;
 use crate::{init_registry};
 
 // Build command
-use build::Build;
-pub use build::{PACKAGE_NAME,PACKAGE_AUTHORS,PACKAGE_VERSION};
-pub use build::{BUILD_PLATFORMS};
+use crate::build::Build;
 
 pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     // Read build configuration

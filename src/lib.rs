@@ -1,8 +1,9 @@
+pub mod build;
+pub mod command;
+pub mod config;
 pub mod jvm;
 pub mod maven;
-pub mod config;
 pub mod platform;
-pub mod command;
 
 use std::path::{Path,PathBuf};
 use std::env;

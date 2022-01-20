@@ -1,6 +1,6 @@
 use glob::glob;
 use crate::config::{Config,Key,Error};
-use crate::command::{PACKAGE_NAME};
+use crate::build::{PACKAGE_NAME};
 use crate::platform;
 
 /// Default path for whiley source files.
