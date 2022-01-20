@@ -4,7 +4,7 @@ use std::path::Path;
 use std::fs;
 use log::LevelFilter;
 use whiley::config::Config;
-use whiley::build::Build;
+use whiley::command::Build;
 use whiley::{init_logging,init_whileyhome,init_registry};
 
 fn main() -> Result<(),Box<dyn Error>> {

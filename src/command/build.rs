@@ -1,17 +1,23 @@
 use std::path::Path;
+use log::{info};
 use crate::{init_classpath};
 use crate::config::{Config,Key,Error};
+use crate::jvm::{Jvm};
 use crate::platform;
 use crate::platform::{Instance,RustInstance,JavaInstance};
 
 // ===================================================================
-// Build
+// Keys
 // ===================================================================
 
-static PACKAGE_NAME : Key = Key::new(&["package","name"]);
-static PACKAGE_AUTHORS : Key = Key::new(&["package","authors"]);
-static PACKAGE_VERSION : Key = Key::new(&["package","version"]);
-static BUILD_PLATFORMS : Key = Key::new(&["build","platforms"]);
+pub static PACKAGE_NAME : Key = Key::new(&["package","name"]);
+pub static PACKAGE_AUTHORS : Key = Key::new(&["package","authors"]);
+pub static PACKAGE_VERSION : Key = Key::new(&["package","version"]);
+pub static BUILD_PLATFORMS : Key = Key::new(&["build","platforms"]);
+
+// ===================================================================
+// Build
+// ===================================================================
 
 /// Identifies meta-data about the package in question, such its name,
 /// version, etc.
@@ -54,9 +60,9 @@ impl Build {
 	for p in &self.platforms {
 	    match p {
 		Instance::Java(i) => {
-		    self.run_java(i,whileyhome)
+		    self.run_java(i.as_ref(),whileyhome)
 		},
-		Instance::Rust(i) => {
+		Instance::Rust(_) => {
 		    todo!("Rust platforms not currently supported")
 		}
 	    }
@@ -64,11 +70,19 @@ impl Build {
     }
 
     /// Run a Java platform
-    fn run_java(&self, i: &Box<dyn JavaInstance>, whileyhome: &Path) {
+    fn run_java(&self, i: &JavaInstance, whileyhome: &Path) {
 	// Initialise classpath as necessary.  This will download Jar
 	// files from Maven central (if not already cached).    
 	let cp = init_classpath(&whileyhome,i.dependencies());
-	//
-	todo!("Implement Java platform!")
+        // Construct JVM runner
+        let jvm = Jvm::new(cp,vec![("WHILEYHOME",&whileyhome)]);
+        // Construct command-line arguments
+        let args : Vec<String> = i.arguments();
+        // Convert into Vec<&str> for exec
+        let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
+        //
+        info!("Executing java {:?}",str_args);
+        // Go!
+        jvm.exec(&str_args);
     }    
 }
