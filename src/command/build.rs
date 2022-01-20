@@ -4,7 +4,7 @@ use crate::{init_classpath};
 use crate::config::{Config,Key,Error};
 use crate::jvm::{Jvm};
 use crate::platform;
-use crate::platform::{Instance,RustInstance,JavaInstance};
+use crate::platform::{Instance,JavaInstance};
 
 // ===================================================================
 // Keys
@@ -70,7 +70,7 @@ impl Build {
     }
 
     /// Run a Java platform
-    fn run_java(&self, i: &JavaInstance, whileyhome: &Path) {
+    fn run_java(&self, i: &dyn JavaInstance, whileyhome: &Path) {
 	// Initialise classpath as necessary.  This will download Jar
 	// files from Maven central (if not already cached).    
 	let cp = init_classpath(&whileyhome,i.dependencies());

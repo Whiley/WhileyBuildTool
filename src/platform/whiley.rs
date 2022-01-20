@@ -1,4 +1,3 @@
-use std::env;
 use glob::glob;
 use crate::config::{Config,Key,Error};
 use crate::command::{PACKAGE_NAME};
