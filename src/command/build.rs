@@ -17,7 +17,7 @@ pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     // Construct build plan
     let build = Build::from_str(&config,&registry)?;
     // Go!
-    build.run(whileyhome);
+    build.run(whileyhome)?;
     //
     Ok(())
 }
