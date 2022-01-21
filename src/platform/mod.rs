@@ -44,6 +44,9 @@ pub trait JavaInstance {
     fn arguments(&self) -> Vec<String>;
     /// Determine build artifacts relevant to this platform.
     fn manifest(&self) -> Vec<build::Artifact>;
+    /// Process output from Java instance into a list of zero or more
+    /// markers.    
+    fn process(&self,output:&str) -> Vec<build::Marker>;
 }
 
 /// Represents a platform implemented in Rust.

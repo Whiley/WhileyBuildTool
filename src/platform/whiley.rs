@@ -24,7 +24,7 @@ static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.1",
+    "org.whiley:wyc:0.10.3",
 ];
 
 pub struct WhileyPlatform {
@@ -78,6 +78,8 @@ impl platform::JavaInstance for WhileyPlatform {
         let mut args = Vec::new();
         // Class to invoke
         args.push("wyc.Main".to_string());
+	// Brief mode
+	args.push("-b".to_string());
         // Target name
         args.push("-o".to_string());
         args.push(self.name.clone());
@@ -108,6 +110,25 @@ impl platform::JavaInstance for WhileyPlatform {
 	}
 	//
 	artifacts
+    }
+    fn process(&self, output: &str) -> Vec<build::Marker> {
+	let mut markers = Vec::new();
+	// Process each line of output
+	for line in output.lines() {
+	    // Split line into components
+	    let split : Vec<&str> = line.split(":").collect();
+	    // Parse components
+	    let kind = build::Kind::SyntaxError;
+	    let mut path = PathBuf::from(&self.source);
+	    path.push(split[0]);
+	    let start = split[1].parse().unwrap();
+	    let end = split[2].parse().unwrap();
+	    let message = split[3].to_string();
+	    // Done
+	    markers.push(build::Marker::new(kind,path,start,end,message));
+	}
+	// Done
+	markers
     }
 }
 

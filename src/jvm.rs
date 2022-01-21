@@ -13,7 +13,7 @@ impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
 	Jvm{classpath,env}
     }
 
-    pub fn exec(self, _args: &[&str]) {
+    pub fn exec(self, _args: &[&str]) -> String {
 	let mut args = Vec::new();	
 	// Configure classpath
 	let mut cp = String::new();
@@ -35,9 +35,11 @@ impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
 	    .envs(self.env)
 	    .output()
 	    .expect("Java is not installed");	
-	//
-	io::stdout().write_all(&output.stdout).unwrap();
-	io::stderr().write_all(&output.stderr).unwrap();	
+	// Merge stdout/stderr together
+	let mut r = String::from_utf8(output.stdout).unwrap();
+	r.push_str(&String::from_utf8(output.stderr).unwrap());
+	// Done
+	r	    
     }
 }
 
