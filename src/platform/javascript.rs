@@ -5,7 +5,7 @@ use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 use crate::platform::whiley;
 
-static BUILD_JAVASCRIPT_TARGET : Key = Key::new(&["build","javascript","target"]);
+static BUILD_JAVASCRIPT_TARGET : Key = Key::new(&["build","js","target"]);
 
 // ========================================================================
 // Platform

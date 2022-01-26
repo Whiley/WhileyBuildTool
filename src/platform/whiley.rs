@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use log::{error};
 use glob::glob;
 use crate::config::{Config,Key,Error};
 use crate::build;
@@ -65,6 +66,32 @@ impl WhileyPlatform {
 	bin.push(&name);
 	bin
     }
+    
+    fn parse_output(&self, output: &str) -> Option<Vec<build::Marker>> {
+	let mut markers = Vec::new();
+	// Process each line of output
+	for line in output.lines() {
+	    // Split line into components
+	    let split : Vec<&str> = line.split(":").collect();
+	    if split.len() != 3 {
+		return None;
+	    }
+	    // Parse components
+	    let kind = build::Kind::SyntaxError;
+	    let mut path = PathBuf::from(&self.source);
+	    path.push(split[0]);
+	    let start = split[1].parse();
+	    let end = split[2].parse();
+	    if start.is_err() || end.is_err() {
+		return None;
+	    }
+	    let message = split[3].to_string();
+	    // Done
+	    markers.push(build::Marker::new(kind,path,start.unwrap(),end.unwrap(),message));
+	}
+	// Done
+	Some(markers)
+    }
 }
 
 impl platform::JavaInstance for WhileyPlatform {
@@ -111,24 +138,14 @@ impl platform::JavaInstance for WhileyPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Vec<build::Marker> {
-	let mut markers = Vec::new();
-	// Process each line of output
-	for line in output.lines() {
-	    // Split line into components
-	    let split : Vec<&str> = line.split(":").collect();
-	    // Parse components
-	    let kind = build::Kind::SyntaxError;
-	    let mut path = PathBuf::from(&self.source);
-	    path.push(split[0]);
-	    let start = split[1].parse().unwrap();
-	    let end = split[2].parse().unwrap();
-	    let message = split[3].to_string();
-	    // Done
-	    markers.push(build::Marker::new(kind,path,start,end,message));
+    fn process(&self, output: &str) -> Vec<build::Marker> {	
+	match self.parse_output(output) {
+	    Some(markers) => markers,
+	    None => {
+		error!("wyc: {}",output);
+		Vec::new()
+	    }
 	}
-	// Done
-	markers
     }
 }
 
