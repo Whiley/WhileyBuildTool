@@ -1,4 +1,5 @@
 pub mod whiley;
+pub mod javascript;
 
 use std::collections::HashMap;
 use crate::build;

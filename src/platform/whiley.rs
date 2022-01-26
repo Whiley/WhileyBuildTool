@@ -6,15 +6,15 @@ use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 
 /// Default path for whiley source files.
-static SOURCE_DEFAULT : &'static str = "src";
+pub static SOURCE_DEFAULT : &'static str = "src";
 /// Default path for whiley binary files.
-static TARGET_DEFAULT : &'static str = "bin";
+pub static TARGET_DEFAULT : &'static str = "bin";
 /// Default set of includes for whiley files
-static INCLUDES_DEFAULT : &'static str = "**/*.whiley";
+pub static INCLUDES_DEFAULT : &'static str = "**/*.whiley";
 
-static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
-static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
-static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
+pub static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
+pub static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
+pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
 
 // ========================================================================
 // Platform
@@ -24,7 +24,7 @@ static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.3",
+    "org.whiley:wyc:0.10.4",
 ];
 
 pub struct WhileyPlatform {
@@ -77,7 +77,7 @@ impl platform::JavaInstance for WhileyPlatform {
     fn arguments(&self) -> Vec<String> {
         let mut args = Vec::new();
         // Class to invoke
-        args.push("wyc.Main".to_string());
+        args.push("wyc.Compiler".to_string());
 	// Brief mode
 	args.push("-b".to_string());
         // Target name

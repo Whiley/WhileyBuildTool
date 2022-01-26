@@ -128,18 +128,21 @@ impl Build {
 		    todo!("Rust platforms not currently supported")
 		}
 	    };
-	    for m in markers {
-		// Determine enclosing line!
-		let l = m.enclosing_line()?;
-		let f = m.path.into_os_string().into_string().unwrap();
-		// Print out the error message
-		println!("{}:{}:{}",f,l.line,m.message);
-		// Print out the line highlight
-		println!("{}",l.contents);
-		let padding = " ".repeat(m.start);
-		let highlight = "^".repeat(m.end - m.start + 1);
-		println!("{}{}",padding,highlight);
-	    }
+            if markers.len() > 0 {
+	        for m in markers {
+		    // Determine enclosing line!
+		    let l = m.enclosing_line()?;
+		    let f = m.path.into_os_string().into_string().unwrap();
+		    // Print out the error message
+		    println!("{}:{}:{}",f,l.line,m.message);
+		    // Print out the line highlight
+		    println!("{}",l.contents);
+		    let padding = " ".repeat(m.start);
+		    let highlight = "^".repeat(m.end - m.start + 1);
+		    println!("{}{}",padding,highlight);
+	        }
+                break;
+            }
 	}
 	//
 	Ok(())
