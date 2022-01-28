@@ -168,6 +168,8 @@ impl platform::JavaInstance for WhileyPlatform {
 
 pub struct Descriptor {}
 
+const tmp : &'static str = "dependencies";
+
 impl platform::Descriptor for Descriptor {
     fn apply<'a>(&self, config: &'a Config) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
@@ -178,7 +180,9 @@ impl platform::Descriptor for Descriptor {
         // Construct whileypath?
         let whileypath = Vec::new();
         for s in config.find_keys(&DEPENDENCIES)? {
-            println!("MATCHED {}",s);
+            let a = [&tmp,s.as_str()];
+            let k = Key::new(&a);
+            println!("MATCHED {}",k);
         }
 	// Construct new instance on the heap
 	let instance = Box::new(WhileyPlatform{name,source,target,includes,whileypath});

@@ -29,8 +29,8 @@ impl fmt::Display for Type {
 
 pub enum Error {
     ParseError(ParseError),
-    Invalid(Key),
-    Expected(Type,Key),
+    Invalid(String),
+    Expected(Type,String),
     UnknownPlatform(String)
 }
 
@@ -72,15 +72,15 @@ impl error::Error for Error {}
 // ===================================================================
 
 #[derive(Clone,Copy,Debug)]
-pub struct Key(&'static [&'static str]);
+pub struct Key<'a>(&'a [&'a str]);
 
-impl Key {
-    pub const fn new(path: &'static [&'static str]) -> Self {
+impl<'a> Key<'a> {
+    pub const fn new(path: &'a [&'a str]) -> Self {
 	Key(path)
     }
 }
 
-impl fmt::Display for Key {
+impl<'a> fmt::Display for Key<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,"{}",self.0[0])?;        
         for s in &self.0[1..] {
@@ -115,13 +115,13 @@ impl Config {
     pub fn get_string(&self, key: &Key) -> Result<String,Error> {
 	let val = match self.get_key(key) {
             None => {
-		return Err(Error::Invalid(*key));
+		return Err(Error::Invalid(key.to_string()));
             }
             Some(v) => v.as_str()
 	};
 	match val {
             Some(v) => Ok(v.to_string()),
-            None => Err(Error::Expected(Type::String,*key))
+            None => Err(Error::Expected(Type::String,key.to_string()))
 	}
     }
 
@@ -130,14 +130,14 @@ impl Config {
 	// Sanity check key exists
 	let val = match self.get_key(key) {
             None => {
-		return Err(Error::Invalid(*key));
+		return Err(Error::Invalid(key.to_string()));
             }
             Some(v) => v.as_array()
 	};
 	// Sanity check value is array
 	let arr : &Vec<Value> = match val {
             None => {
-		return Err(Error::Expected(Type::StringArray,*key));
+		return Err(Error::Expected(Type::StringArray,key.to_string()));
             }        
             Some(v) => {
 		v
@@ -149,7 +149,7 @@ impl Config {
 	for v in arr {
             let s = match v.as_str() {
 		None => {
-                    return Err(Error::Expected(Type::StringArray,*key));
+                    return Err(Error::Expected(Type::StringArray,key.to_string()));
 		}
 		Some(v) => v                
             };
@@ -165,9 +165,9 @@ impl Config {
         // Sanity check key exists
 	let val = match self.get_key(key) {
             None => {
-		return Err(Error::Invalid(*key));
+		return Err(Error::Invalid(key.to_string()));
             }
-            Some(v) => v.as_table().ok_or(Error::Invalid(*key))?
+            Some(v) => v.as_table().ok_or(Error::Invalid(key.to_string()))?
 	};
         // Extract keys!
         let mut keys = Vec::new();
