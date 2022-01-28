@@ -4,6 +4,7 @@ use glob::glob;
 use crate::config::{Config,Key,Error};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
+use crate::jvm;
 use crate::platform;
 
 /// Default path for whiley source files.
@@ -13,6 +14,7 @@ pub static TARGET_DEFAULT : &'static str = "bin";
 /// Default set of includes for whiley files
 pub static INCLUDES_DEFAULT : &'static str = "**/*.whiley";
 
+pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
 pub static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
 pub static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
 pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
@@ -32,7 +34,8 @@ pub struct WhileyPlatform {
     name: String,
     source: String,
     target: String,
-    includes: String
+    includes: String,
+    whileypath: Vec<String>
 }
 
 impl WhileyPlatform {
@@ -120,6 +123,16 @@ impl platform::JavaInstance for WhileyPlatform {
         target.push_str("--wyildir=");
         target.push_str(self.target.as_str());
         args.push(target);
+        // Whiley path
+        let mut whileypath = String::new();
+        if whileypath.len() > 0 {
+            whileypath.push_str("--whileypath=");
+            whileypath.push_str(self.whileypath.get(0).unwrap());
+            for e in &self.whileypath[1..] {
+                whileypath.push_str(jvm::classpath_sep());
+                whileypath.push_str(e);
+            }
+        }
         //
         args.append(&mut self.match_includes());
         //
@@ -162,8 +175,13 @@ impl platform::Descriptor for Descriptor {
 	let source = config.get_string(&BUILD_WHILEY_SOURCE).unwrap_or(SOURCE_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_WHILEY_TARGET).unwrap_or(TARGET_DEFAULT.to_string());
 	let includes = config.get_string(&BUILD_WHILEY_INCLUDES).unwrap_or(INCLUDES_DEFAULT.to_string());
+        // Construct whileypath?
+        let whileypath = Vec::new();
+        for s in config.find_keys(&DEPENDENCIES)? {
+            println!("MATCHED {}",s);
+        }
 	// Construct new instance on the heap
-	let instance = Box::new(WhileyPlatform{name,source,target,includes});
+	let instance = Box::new(WhileyPlatform{name,source,target,includes,whileypath});
 	// Return generic instance
 	Ok(platform::Instance::Java(instance))
     }

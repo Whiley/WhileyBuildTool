@@ -159,6 +159,25 @@ impl Config {
 	Ok(res)
     }
 
+    /// Responsible for identifying keys contained (directly) within
+    /// this key.
+    pub fn find_keys(&self, key: &Key) -> Result<Vec<String>,Error> {
+        // Sanity check key exists
+	let val = match self.get_key(key) {
+            None => {
+		return Err(Error::Invalid(*key));
+            }
+            Some(v) => v.as_table().ok_or(Error::Invalid(*key))?
+	};
+        // Extract keys!
+        let mut keys = Vec::new();
+        for (k,_) in val {
+            keys.push(k.clone());
+        }
+        // Done
+        Ok(keys)
+    }
+    
     /// Responsible for traversing the TOML tree and extracting the
     /// desired value (if it exists).    
     fn get_key<'a>(&'a self, key: &Key) -> Option<&'a Value> {
