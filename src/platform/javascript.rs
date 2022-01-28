@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 use log::{error};
 use crate::config::{Config,Key,Error};
 use crate::build;
@@ -105,7 +105,7 @@ impl platform::JavaInstance for JavaScriptPlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());

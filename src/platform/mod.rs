@@ -1,7 +1,7 @@
 pub mod whiley;
 pub mod javascript;
-
 use std::collections::HashMap;
+use std::path::Path;
 use crate::build;
 use crate::config::{Config,Error};
 
@@ -66,7 +66,7 @@ pub trait RustInstance {
 pub trait Descriptor {
     /// Apply this descriptor to a given TOML configuration, thereby
     /// allowing customisation of the platform instantiation.    
-    fn apply<'a>(&self, config: &'a Config)->Result<Instance,Error>;
+    fn apply<'a>(&self, config: &'a Config, whileypath: &'a Path)->Result<Instance,Error>;
 }
 
 // ============================================================

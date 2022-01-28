@@ -16,7 +16,7 @@ pub fn install(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
    // Initialise platform registry
     let registry = init_registry();    
     // Construct build plan
-    let build = Build::from_str(&config,&registry)?;
+    let build = Build::from_str(&config,whileyhome,&registry)?;
     // Construct zip file
     let pkg = format!("{}-{}.zip",build.name,build.version);
     let path = get_pkg_path(whileyhome,&pkg);

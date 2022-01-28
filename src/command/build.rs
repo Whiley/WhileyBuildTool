@@ -15,7 +15,7 @@ pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
    // Initialise platform registry
     let registry = init_registry();    
     // Construct build plan
-    let build = Build::from_str(&config,&registry)?;
+    let build = Build::from_str(&config,whileyhome,&registry)?;
     // Go!
     build.run(whileyhome)?;
     //

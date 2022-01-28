@@ -89,7 +89,7 @@ pub struct Build {
 
 impl Build {
     /// Parse a give string into a build configuration.
-    pub fn from_str<'a>(config: &Config, registry: &'a platform::Registry<'a>) -> Result<Build,Error> {
+    pub fn from_str<'a>(config: &Config, whileyhome: &Path, registry: &'a platform::Registry<'a>) -> Result<Build,Error> {
         // Extract all required keys
         let name = config.get_string(&PACKAGE_NAME)?;
         let authors = config.get_string_array(&PACKAGE_AUTHORS)?;
@@ -104,7 +104,7 @@ impl Build {
                 }
                 Some(v) => v
             };
-            ps.push(init.apply(config)?);
+            ps.push(init.apply(config,whileyhome)?);
         }
 	// Done
 	return Ok(Build{name,authors,version,platforms:ps});

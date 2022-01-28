@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 use log::{error};
 use glob::glob;
 use crate::config::{Config,Key,Error};
@@ -171,18 +171,26 @@ pub struct Descriptor {}
 const tmp : &'static str = "dependencies";
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&BUILD_WHILEY_SOURCE).unwrap_or(SOURCE_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_WHILEY_TARGET).unwrap_or(TARGET_DEFAULT.to_string());
 	let includes = config.get_string(&BUILD_WHILEY_INCLUDES).unwrap_or(INCLUDES_DEFAULT.to_string());
         // Construct whileypath?
-        let whileypath = Vec::new();
+        let mut whileypath = Vec::new();
+	// FIXME: this should be placed somewhere else, and use a
+	// resolved.
         for s in config.find_keys(&DEPENDENCIES)? {
             let a = [&tmp,s.as_str()];
             let k = Key::new(&a);
-            println!("MATCHED {}",k);
+	    let d = config.get_string(&k)?;
+	    let mut pb = PathBuf::new();
+	    pb.push(whileyhome);
+	    pb.push(format!("{}-{}.zip",&s,&d));
+	    // FIXME: whileypath should be Vec of PathBuf
+	    let arg = pb.into_os_string().into_string().unwrap();
+	    whileypath.push(arg);
         }
 	// Construct new instance on the heap
 	let instance = Box::new(WhileyPlatform{name,source,target,includes,whileypath});

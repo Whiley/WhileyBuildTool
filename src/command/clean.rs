@@ -7,7 +7,7 @@ use crate::build::{Artifact,Build};
 use crate::{init_registry};
 
 // Clean command
-pub fn clean(_whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+pub fn clean(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse configuration
@@ -15,7 +15,7 @@ pub fn clean(_whileyhome: &Path) -> Result<(),Box<dyn Error>> {
    // Initialise platform registry
     let registry = init_registry();    
     // Construct build plan
-    let build = Build::from_str(&config,&registry)?;
+    let build = Build::from_str(&config,whileyhome,&registry)?;
     //
     for ba in build.manifest() {
 	match ba {
