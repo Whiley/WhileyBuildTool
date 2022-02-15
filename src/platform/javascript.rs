@@ -19,7 +19,7 @@ static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
 static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
     "org.whiley:wyc:0.10.4",    
-    "org.whiley:wyjs:0.10.1",
+    "org.whiley:wyjs:0.10.3",
 ];
 
 pub struct JavaScriptPlatform {
