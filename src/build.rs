@@ -4,6 +4,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use log::{info};
 use crate::{init_classpath};
+use crate::util;
 use crate::config::{Config,Key,Error};
 use crate::jvm::{Jvm};
 use crate::platform;
@@ -50,18 +51,13 @@ impl Marker {
 	// Read marked file
 	let contents = read_to_string(self.path.as_path())?;
 	// Split into lines
-	let mut offset = 0;
 	let mut line = 1;
 	//
-	for l in contents.lines() {
-	    if self.start < offset + l.len() {
-                // Determine column difference
-                offset = self.start - offset;
-		// Return line
-		return Ok(Line{offset,line,contents:l.to_string()});
+	for l in util::line_offsets(contents.as_str()) {
+	    if l.contains(self.start) {
+		return Ok(Line{offset:l.start,line,contents:l.as_str().to_string()});
 	    }
-	    line = line + 1;
-	    offset = offset + l.len()
+	    line = line + 1;	    
 	}
 	// Temporary hack
 	panic!("No enclosing line!");
@@ -69,8 +65,11 @@ impl Marker {
 }
 
 pub struct Line {
+    /// Offset of this line in the original file
     pub offset: usize,
+    /// Line number for this line
     pub line: usize,
+    /// Contents of this line
     pub contents: String
 }
 
@@ -139,7 +138,7 @@ impl Build {
 		    println!("{}:{}:{}",f,l.line,m.message);
 		    // Print out the line highlight
 		    println!("{}",l.contents);
-		    let padding = " ".repeat(m.start);
+		    let padding = " ".repeat(m.start - l.offset);
 		    let highlight = "^".repeat(m.end - m.start + 1);
 		    println!("{}{}",padding,highlight);
 	        }

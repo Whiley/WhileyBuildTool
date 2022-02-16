@@ -4,6 +4,7 @@ pub mod config;
 pub mod jvm;
 pub mod maven;
 pub mod platform;
+mod util;
 
 use std::path::{Path,PathBuf};
 use std::env;
