@@ -76,7 +76,7 @@ impl WhileyPlatform {
 	for line in output.lines() {
 	    // Split line into components
 	    let split : Vec<&str> = line.split(":").collect();
-	    if split.len() != 3 {
+	    if split.len() != 4 {
 		return None;
 	    }
 	    // Parse components

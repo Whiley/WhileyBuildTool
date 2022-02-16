@@ -55,7 +55,9 @@ impl Marker {
 	//
 	for l in contents.lines() {
 	    if self.start < offset + l.len() {
-		// Found it
+                // Determine column difference
+                offset = self.start - offset;
+		// Return line
 		return Ok(Line{offset,line,contents:l.to_string()});
 	    }
 	    line = line + 1;
