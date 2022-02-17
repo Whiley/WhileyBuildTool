@@ -18,7 +18,7 @@ static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.4",    
+    "org.whiley:wyc:0.10.5",
     "org.whiley:wyjs:0.10.3",
 ];
 
