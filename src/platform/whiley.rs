@@ -27,7 +27,7 @@ pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.4",
+    "org.whiley:wyc:0.10.5",
 ];
 
 pub struct WhileyPlatform {
@@ -68,32 +68,6 @@ impl WhileyPlatform {
 	name.push_str(".wyil");	
 	bin.push(&name);
 	bin
-    }
-    
-    fn parse_output(&self, output: &str) -> Option<Vec<build::Marker>> {
-	let mut markers = Vec::new();
-	// Process each line of output
-	for line in output.lines() {
-	    // Split line into components
-	    let split : Vec<&str> = line.split(":").collect();
-	    if split.len() != 4 {
-		return None;
-	    }
-	    // Parse components
-	    let kind = build::Kind::SyntaxError;
-	    let mut path = PathBuf::from(&self.source);
-	    path.push(split[0]);
-	    let start = split[1].parse();
-	    let end = split[2].parse();
-	    if start.is_err() || end.is_err() {
-		return None;
-	    }
-	    let message = split[3].to_string();
-	    // Done
-	    markers.push(build::Marker::new(kind,path,start.unwrap(),end.unwrap(),message));
-	}
-	// Done
-	Some(markers)
     }
 }
 
@@ -152,7 +126,7 @@ impl platform::JavaInstance for WhileyPlatform {
 	artifacts
     }
     fn process(&self, output: &str) -> Vec<build::Marker> {	
-	match self.parse_output(output) {
+	match parse_output(&self.source,output) {
 	    Some(markers) => markers,
 	    None => {
 		error!("wyc: {}",output);
@@ -160,6 +134,32 @@ impl platform::JavaInstance for WhileyPlatform {
 	    }
 	}
     }
+}
+
+pub fn parse_output(source: &str, output: &str) -> Option<Vec<build::Marker>> {
+    let mut markers = Vec::new();
+    // Process each line of output
+    for line in output.lines() {
+	// Split line into components
+	let split : Vec<&str> = line.split(":").collect();
+	if split.len() != 4 {
+	    return None;
+	}
+	// Parse components
+	let kind = build::Kind::SyntaxError;
+	let mut path = PathBuf::from(source);
+	path.push(split[0]);
+	let start = split[1].parse();
+	let end = split[2].parse();
+	if start.is_err() || end.is_err() {
+	    return None;
+	}
+	let message = split[3].to_string();
+	// Done
+	markers.push(build::Marker::new(kind,path,start.unwrap(),end.unwrap(),message));
+    }
+    // Done
+    Some(markers)
 }
 
 // ========================================================================

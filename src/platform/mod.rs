@@ -1,5 +1,6 @@
 pub mod whiley;
 pub mod javascript;
+pub mod boogie;
 use std::collections::HashMap;
 use std::path::Path;
 use crate::build;
