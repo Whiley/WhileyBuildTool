@@ -181,7 +181,7 @@ impl platform::Descriptor for Descriptor {
         let mut whileypath = Vec::new();
 	// FIXME: this should be placed somewhere else, and use a
 	// resolved.
-        for s in config.find_keys(&DEPENDENCIES)? {
+        for s in config.find_keys(&DEPENDENCIES).unwrap_or(Vec::new()) {
             let a = [&tmp,s.as_str()];
             let k = Key::new(&a);
 	    let d = config.get_string(&k)?;
