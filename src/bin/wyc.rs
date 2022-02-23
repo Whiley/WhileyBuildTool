@@ -1,16 +1,9 @@
 //use clap::{App, AppSettings};
 use std::env;
 use log::LevelFilter;
+use whiley::platform::whiley::MAVEN_DEPS;
 use whiley::jvm::Jvm;
 use whiley::{init_logging,init_whileyhome,init_classpath};
-
-/// Identify the necessary dependencies (from Maven central) necessary
-/// to run Whiley.  Eventually, the intention is to reduce these
-/// dependencies eventually to nothing.
-static MAVEN_DEPS : &'static [&str] = &[
-    "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.1",
-];
 
 fn main() {
     // Initialise logging
