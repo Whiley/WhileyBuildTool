@@ -5,7 +5,6 @@ use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 use crate::platform::whiley;
-
 pub static STANDARD_DEFAULT : &'static str = "ES6";
 static BUILD_JAVASCRIPT_TARGET : Key = Key::new(&["build","js","target"]);
 static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
@@ -17,8 +16,8 @@ static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
 /// Identify the necessary dependencies (from Maven central) necessary
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
-    "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.5",
+    whiley::MAVEN_DEPS[0], // jmodelgen
+    whiley::MAVEN_DEPS[1], // wyc
     "org.whiley:wyjs:0.10.3",
 ];
 

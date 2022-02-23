@@ -25,7 +25,7 @@ pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]
 
 /// Identify the necessary dependencies (from Maven central) necessary
 /// to run the WhileyCompiler.
-static MAVEN_DEPS : &'static [&str] = &[
+pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
     "org.whiley:wyc:0.10.5",
 ];
