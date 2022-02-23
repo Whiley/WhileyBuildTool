@@ -99,13 +99,14 @@ impl platform::JavaInstance for WhileyPlatform {
         args.push(target);
         // Whiley path
         let mut whileypath = String::new();
-        if whileypath.len() > 0 {
+        if self.whileypath.len() > 0 {
             whileypath.push_str("--whileypath=");
             whileypath.push_str(self.whileypath.get(0).unwrap());
             for e in &self.whileypath[1..] {
                 whileypath.push_str(jvm::classpath_sep());
                 whileypath.push_str(e);
             }
+	    args.push(whileypath);
         }
         //
         args.append(&mut self.match_includes());
@@ -187,6 +188,7 @@ impl platform::Descriptor for Descriptor {
 	    let d = config.get_string(&k)?;
 	    let mut pb = PathBuf::new();
 	    pb.push(whileyhome);
+	    pb.push("repository");
 	    pb.push(format!("{}-{}.zip",&s,&d));
 	    // FIXME: whileypath should be Vec of PathBuf
 	    let arg = pb.into_os_string().into_string().unwrap();
