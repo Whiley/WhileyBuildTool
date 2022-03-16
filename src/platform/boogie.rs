@@ -6,15 +6,20 @@ use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 use crate::platform::whiley;
 
-static BUILD_BOOGIE_TARGET : Key = Key::new(&["build","boogie","target"]);
+pub static VERIFY_DEFAULT : bool = true;
+pub static VERBOSE_DEFAULT : bool = false;
+pub static DEBUG_DEFAULT : bool = false;
+pub static TIMEOUT_DEFAULT : i64 = 10; // s
+pub static ARRAYTHEORY_DEFAULT : bool = true;
 
-// public static Trie BUILD_BOOGIE_VERIFY = Trie.fromString("build/boogie/verify");
-// public static Trie BUILD_BOOGIE_VERBOSE = Trie.fromString("build/boogie/verbose");
-// public static Trie BUILD_BOOGIE_DEBUG = Trie.fromString("build/boogie/debug");
-// public static Trie BUILD_BOOGIE_TIMEOUT = Trie.fromString("build/boogie/timeout");
-// public static Trie BUILD_BOOGIE_USEARRAYTHEORY = Trie.fromString("build/boogie/useArrayTheory");
-// public static Trie BUILD_BOOGIE_VCSCORES = Trie.fromString("build/boogie/vcsCores");
-// public static Trie BUILD_BOOGIE_PROVERLOG = Trie.fromString("build/boogie/proverLog");
+static BUILD_BOOGIE_TARGET : Key = Key::new(&["build","boogie","target"]);
+static BUILD_BOOGIE_VERIFY : Key = Key::new(&["build","boogie","verify"]);
+static BUILD_BOOGIE_VERBOSE : Key = Key::new(&["build","boogie","verbose"]);
+static BUILD_BOOGIE_DEBUG : Key = Key::new(&["build","boogie","debug"]);
+static BUILD_BOOGIE_TIMEOUT : Key = Key::new(&["build","boogie","timeout"]);
+static BUILD_BOOGIE_ARRAYTHEORY : Key = Key::new(&["build","boogie","useArrayTheory"]);
+static BUILD_BOOGIE_PROVERLOG : Key = Key::new(&["build","boogie","proverLog"]);
+static BUILD_BOOGIE_PROVERNAME : Key = Key::new(&["build","boogie","proverName"]);
 
 // ========================================================================
 // Platform
@@ -25,14 +30,21 @@ static BUILD_BOOGIE_TARGET : Key = Key::new(&["build","boogie","target"]);
 static MAVEN_DEPS : &'static [&str] = &[
     whiley::MAVEN_DEPS[0], // jmodelgen
     whiley::MAVEN_DEPS[1], // wyc    
-    "org.whiley:wyboogie:0.4.0",
+    "org.whiley:wyboogie:0.4.1",
 ];
 
 pub struct BoogiePlatform {
     name: String,
     source: String,
     binary: String,    
-    target: String
+    target: String,
+    verify: bool,
+    verbose: bool,
+    debug: bool,
+    timeout: i64,
+    array_theory: bool,
+    prover_log: Option<String>,
+    prover_name: Option<String>
 }
 
 impl BoogiePlatform {
@@ -64,18 +76,35 @@ impl platform::JavaInstance for BoogiePlatform {
         // Class to invoke
         args.push("wyboogie.Main".to_string());	
         // Target name
-        args.push("-o".to_string());
-        args.push(self.name.clone());
-        // Whiley bin dir
-        let mut source = String::new();
-        source.push_str("--wyildir=");
-        source.push_str(self.binary.as_str());
-        args.push(source);
-        // JavaScript bin dir
-        let mut target = String::new();
-        target.push_str("--bpldir=");
-        target.push_str(self.target.as_str());
-        args.push(target);
+	args.push(format!("--output={}",self.name));
+	args.push(format!("--wyildir={}",self.binary));
+	args.push(format!("--bpldir={}",self.target));
+	args.push(format!("--timeout={}",self.timeout));
+	// Verify
+	if !self.verify {
+	    // Enable linking
+	    args.push("--noverify".to_string());
+	}
+	// Verbose
+	if self.verbose {
+	    args.push("--verbose".to_string());
+	}
+	// Debug
+	if self.debug {
+	    args.push("--debug".to_string());
+	}
+	// useArrayTheory
+	if self.array_theory {
+	    args.push("--useArrayTheory".to_string());
+	}
+	// Prover log
+	if self.prover_log.is_some() {
+	    args.push(format!("--proverLog={}",self.prover_log.as_ref().unwrap().to_string()));
+	}
+	// Prover name
+	if self.prover_name.is_some() {
+	    args.push(format!("--proverName={}",self.prover_name.as_ref().unwrap().to_string()));
+	}
         //
         args.append(&mut self.match_includes());
         //
@@ -113,8 +142,15 @@ impl platform::Descriptor for Descriptor {
 	let source = config.get_string(&whiley::BUILD_WHILEY_SOURCE).unwrap_or(whiley::SOURCE_DEFAULT.to_string());
 	let binary = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_BOOGIE_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());
+	let verify = config.get_bool(&BUILD_BOOGIE_VERIFY).unwrap_or(VERIFY_DEFAULT);
+	let verbose = config.get_bool(&BUILD_BOOGIE_VERBOSE).unwrap_or(VERBOSE_DEFAULT);
+	let debug = config.get_bool(&BUILD_BOOGIE_DEBUG).unwrap_or(DEBUG_DEFAULT);
+	let timeout = config.get_int(&BUILD_BOOGIE_TIMEOUT).unwrap_or(TIMEOUT_DEFAULT);
+	let array_theory = config.get_bool(&BUILD_BOOGIE_ARRAYTHEORY).unwrap_or(ARRAYTHEORY_DEFAULT);
+	let prover_log = config.get_string(&BUILD_BOOGIE_PROVERLOG).ok();
+	let prover_name = config.get_string(&BUILD_BOOGIE_PROVERNAME).ok();
 	// Construct new instance on the heap
-	let instance = Box::new(BoogiePlatform{name,source,binary,target});
+	let instance = Box::new(BoogiePlatform{name,source,binary,target,verify,verbose,debug,timeout,array_theory,prover_log,prover_name});
 	// Return generic instance
 	Ok(platform::Instance::Java(instance))
     }
