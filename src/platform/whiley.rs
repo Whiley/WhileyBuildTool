@@ -7,6 +7,8 @@ use crate::build::{PACKAGE_NAME,Artifact};
 use crate::jvm;
 use crate::platform;
 
+/// Default setting for whether building library or binary.
+pub static LIBRARY_DEFAULT : bool = false;
 /// Default path for whiley source files.
 pub static SOURCE_DEFAULT : &'static str = "src";
 /// Default path for whiley binary files.
@@ -18,6 +20,7 @@ pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
 pub static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
 pub static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
 pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
+pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
 
 // ========================================================================
 // Platform
@@ -27,11 +30,12 @@ pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.5",
+    "org.whiley:wyc:0.10.6",
 ];
 
 pub struct WhileyPlatform {
     name: String,
+    linking: bool,
     source: String,
     target: String,
     includes: String,
@@ -87,6 +91,11 @@ impl platform::JavaInstance for WhileyPlatform {
         // Target name
         args.push("-o".to_string());
         args.push(self.name.clone());
+	//
+	if self.linking {
+	    // Enable linking
+	    args.push("--linking".to_string());
+	}
         // Whiley source dir
         let mut source = String::new();
         source.push_str("--whileydir=");
@@ -175,6 +184,7 @@ impl platform::Descriptor for Descriptor {
     fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
+	let linking = !config.get_bool(&BUILD_WHILEY_LIBRARY).unwrap_or(LIBRARY_DEFAULT);	
 	let source = config.get_string(&BUILD_WHILEY_SOURCE).unwrap_or(SOURCE_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_WHILEY_TARGET).unwrap_or(TARGET_DEFAULT.to_string());
 	let includes = config.get_string(&BUILD_WHILEY_INCLUDES).unwrap_or(INCLUDES_DEFAULT.to_string());
@@ -195,7 +205,7 @@ impl platform::Descriptor for Descriptor {
 	    whileypath.push(arg);
         }
 	// Construct new instance on the heap
-	let instance = Box::new(WhileyPlatform{name,source,target,includes,whileypath});
+	let instance = Box::new(WhileyPlatform{name,linking,source,target,includes,whileypath});
 	// Return generic instance
 	Ok(platform::Instance::Java(instance))
     }
