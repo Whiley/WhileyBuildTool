@@ -199,7 +199,7 @@ impl platform::Descriptor for Descriptor {
 	    let mut pb = PathBuf::new();
 	    pb.push(whileyhome);
 	    pb.push("repository");
-	    pb.push(format!("{}-{}.zip",&s,&d));
+	    pb.push(format!("{}-v{}.zip",&s,&d));
 	    // FIXME: whileypath should be Vec of PathBuf
 	    let arg = pb.into_os_string().into_string().unwrap();
 	    whileypath.push(arg);
