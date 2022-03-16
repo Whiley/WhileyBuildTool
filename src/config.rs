@@ -11,6 +11,7 @@ type ParseError = toml::de::Error;
 
 pub enum Type {
     Bool,
+    Int,
     String,
     StringArray
 }
@@ -20,7 +21,10 @@ impl fmt::Display for Type {
         match self {
             Type::Bool => {
                 write!(f, "bool")
-            }	    
+            }
+	    Type::Int => {
+                write!(f, "int")
+            }
             Type::String => {
                 write!(f, "string")
             }
@@ -128,6 +132,20 @@ impl Config {
             None => Err(Error::Expected(Type::Bool,key.to_string()))
 	}
     }    
+
+    /// Responsible for extracting an integer associated with a given key.
+    pub fn get_int(&self, key: &Key) -> Result<i64,Error> {
+	let val = match self.get_key(key) {
+            None => {
+		return Err(Error::Invalid(key.to_string()));
+            }
+            Some(v) => v.as_integer()
+	};
+	match val {
+            Some(v) => Ok(v),
+            None => Err(Error::Expected(Type::Int,key.to_string()))
+	}
+    }
     
     /// Responsible for extracting a string associated with a given key.
     pub fn get_string(&self, key: &Key) -> Result<String,Error> {
