@@ -126,11 +126,13 @@ impl platform::JavaInstance for WhileyPlatform {
 	let mut artifacts = Vec::new();
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::Binary(bin));	
+	artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
+	artifacts.push(Artifact::BinaryFile(bin));
+	artifacts.push(Artifact::SourceFolder(PathBuf::from(&self.source)));	
 	for i in self.match_includes() {
 	    let mut p = PathBuf::from(&self.source);
 	    p.push(i);
-	    artifacts.push(Artifact::Source(p));
+	    artifacts.push(Artifact::SourceFile(p));
 	}
 	//
 	artifacts

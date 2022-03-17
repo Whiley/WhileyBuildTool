@@ -16,17 +16,19 @@ pub fn clean(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     let registry = init_registry();    
     // Construct build plan
     let build = Build::from_str(&config,whileyhome,&registry)?;
-    //
+    // Clean all folders
     for ba in build.manifest() {
 	match ba {
-	    Artifact::Binary(p) => {
-		info!("Deleting file {}",p.display());
-		fs::remove_file(p)?;
+	    Artifact::BinaryFolder(p) => {
+		if p.as_path().exists() {
+		    info!("Removing folder {}",p.display());
+		    fs::remove_dir_all(p)?;
+		}
 	    }
 	    _ => {
 	    }
 	}
-    }
+    }    
     //
     Ok(())
 }
