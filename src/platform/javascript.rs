@@ -79,9 +79,13 @@ impl platform::JavaInstance for JavaScriptPlatform {
     }
     fn manifest(&self) -> Vec<build::Artifact> {
 	let mut artifacts = Vec::new();
+	// Register binary folder (if applicable)
+	if(self.target != whiley::TARGET_DEFAULT) {
+	    artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
+	}
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::Binary(bin));	
+	artifacts.push(Artifact::BinaryFile(bin));	
 	//
 	artifacts
     }

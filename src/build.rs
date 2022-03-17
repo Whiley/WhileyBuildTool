@@ -1,5 +1,5 @@
 use std::error;
-use std::fs::{File,read_to_string};
+use std::fs::{File,read_to_string,create_dir};
 use std::path::Path;
 use std::path::PathBuf;
 use log::{info};
@@ -119,6 +119,8 @@ impl Build {
     
     /// Run the given build.
     pub fn run(&self, whileyhome: &Path) -> Result<(),Box<dyn error::Error>> {
+	// Perform startup initialisation(s)
+	self.initialise(whileyhome);
 	// Execute each platform in sequence.
 	for p in &self.platforms {
 	    let markers = match p {
@@ -166,7 +168,23 @@ impl Build {
         let output = jvm.exec(&str_args);
 	// Post process the response
 	i.process(output.as_str())
-    }    
+    }
+
+    fn initialise(&self, whileyhome: &Path) {
+	for ba in self.manifest() {
+	    // Construct any missing binary folders.
+	    match ba {
+		Artifact::BinaryFolder(p) => {
+		    if !p.as_path().exists() {		
+			info!("Making binary folder {}",p.display());
+			create_dir(p);		    
+		    }
+		}
+		_ => {
+		}
+	    };
+	}
+    }
 }
 
 // ===================================================================
@@ -175,8 +193,10 @@ impl Build {
 
 #[derive(Debug)]
 pub enum Artifact {
-    Source(PathBuf),
-    Binary(PathBuf)    
+    SourceFile(PathBuf),
+    SourceFolder(PathBuf),    
+    BinaryFile(PathBuf),
+    BinaryFolder(PathBuf)
 }
 
 pub struct Manifest {
@@ -186,7 +206,7 @@ pub struct Manifest {
 impl Manifest {
     pub fn new(b: &Build) -> Manifest {
 	let mut artifacts = Vec::new();
-	artifacts.push(Artifact::Source(PathBuf::from("wy.toml")));
+	artifacts.push(Artifact::SourceFile(PathBuf::from("wy.toml")));
 	// Iterator platforms looking for artifacts
 	for i in &b.platforms {
 	    // Push items from instance manifest
