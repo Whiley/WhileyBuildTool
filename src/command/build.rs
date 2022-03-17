@@ -7,7 +7,7 @@ use crate::{init_registry};
 
 // Build command
 
-pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+pub fn build(whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse configuration
@@ -17,7 +17,7 @@ pub fn build(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     // Construct build plan
     let build = Build::from_str(&config,whileyhome,&registry)?;
     // Go!
-    build.run(whileyhome)?;
-    //
-    Ok(())
+    let r = build.run(whileyhome)?;
+    // Respond with command result
+    Ok(r)
 }

@@ -118,12 +118,13 @@ impl Build {
     }
     
     /// Run the given build.
-    pub fn run(&self, whileyhome: &Path) -> Result<(),Box<dyn error::Error>> {
+    pub fn run(&self, whileyhome: &Path) -> Result<bool,Box<dyn error::Error>> {
 	// Perform startup initialisation(s)
 	self.initialise(whileyhome);
 	// Execute each platform in sequence.
 	for p in &self.platforms {
-	    let markers = match p {
+	    // Execute plugin
+	    let result = match p {
 		Instance::Java(i) => {
 		    self.run_java(i.as_ref(),whileyhome)
 		},
@@ -131,28 +132,39 @@ impl Build {
 		    todo!("Rust platforms not currently supported")
 		}
 	    };
-            if markers.len() > 0 {
-	        for m in markers {
-		    // Determine enclosing line!
-		    let l = m.enclosing_line()?;
-		    let f = m.path.into_os_string().into_string().unwrap();
-		    // Print out the error message
-		    println!("{}:{}:{}",f,l.line,m.message);
-		    // Print out the line highlight
-		    println!("{}",l.contents);
-		    let padding = " ".repeat(m.start - l.offset);
-		    let highlight = "^".repeat(m.end - m.start + 1);
-		    println!("{}{}",padding,highlight);
-	        }
-                break;
+	    // Decode output
+	    match result {
+		Ok(markers) => {
+		    if markers.len() > 0 {
+			for m in markers {
+			    // Determine enclosing line!
+			    let l = m.enclosing_line()?;
+			    let f = m.path.into_os_string().into_string().unwrap();
+			    // Print out the error message
+			    println!("{}:{}:{}",f,l.line,m.message);
+			    // Print out the line highlight
+			    println!("{}",l.contents);
+			    let padding = " ".repeat(m.start - l.offset);
+			    let highlight = "^".repeat(m.end - m.start + 1);
+			    println!("{}{}",padding,highlight);			
+			}
+			// Fail
+			return Ok(false);
+		    }
+		}
+		Err(out) => {
+		    println!("{}",out);
+		    // Failure
+		    return Ok(false);		    
+		}
             }
 	}
-	//
-	Ok(())
+	// Success
+	Ok(true)
     }
 
     /// Run a Java platform
-    fn run_java(&self, i: &dyn JavaInstance, whileyhome: &Path) -> Vec<Marker> {
+    fn run_java(&self, i: &dyn JavaInstance, whileyhome: &Path) -> Result<Vec<Marker>,platform::Error> {
 	// Initialise classpath as necessary.  This will download Jar
 	// files from Maven central (if not already cached).    
 	let cp = init_classpath(&whileyhome,i.dependencies());

@@ -122,15 +122,14 @@ impl platform::JavaInstance for BoogiePlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Vec<build::Marker> {
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {	
 	match whiley::parse_output(&self.source,output) {
-	    Some(markers) => markers,
+	    Some(markers) => Ok(markers),
 	    None => {
-		error!("wyboogie: {}",output);
-		Vec::new()
+		Err(output.to_string())
 	    }
 	}
-    }
+    }    
 }
 
 // ========================================================================

@@ -4,7 +4,8 @@ pub mod boogie;
 use std::collections::HashMap;
 use std::path::Path;
 use crate::build;
-use crate::config::{Config,Error};
+use crate::config;
+use crate::config::{Config};
 
 // ============================================================
 // Instance
@@ -48,7 +49,7 @@ pub trait JavaInstance {
     fn manifest(&self) -> Vec<build::Artifact>;
     /// Process output from Java instance into a list of zero or more
     /// markers.    
-    fn process(&self,output:&str) -> Vec<build::Marker>;
+    fn process(&self,output:&str) -> Result<Vec<build::Marker>,Error>;
 }
 
 /// Represents a platform implemented in Rust.
@@ -60,6 +61,12 @@ pub trait RustInstance {
 }
 
 // ============================================================
+// Error
+// ============================================================
+
+pub type Error = String;
+
+// ============================================================
 // Descriptor
 // ============================================================
 
@@ -67,7 +74,7 @@ pub trait RustInstance {
 pub trait Descriptor {
     /// Apply this descriptor to a given TOML configuration, thereby
     /// allowing customisation of the platform instantiation.    
-    fn apply<'a>(&self, config: &'a Config, whileypath: &'a Path)->Result<Instance,Error>;
+    fn apply<'a>(&self, config: &'a Config, whileypath: &'a Path)->Result<Instance,config::Error>;
 }
 
 // ============================================================

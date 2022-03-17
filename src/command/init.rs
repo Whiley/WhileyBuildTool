@@ -22,7 +22,7 @@ public export method main():
     io::println("Hello World")
 "###;
 
-pub fn init(_whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+pub fn init(_whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
     let config = Path::new("wy.toml");    
     let src = Path::new("src");
     let main = Path::new("src/main.whiley");
@@ -41,5 +41,5 @@ pub fn init(_whileyhome: &Path) -> Result<(),Box<dyn Error>> {
 	info!("Creating file {} ...",main.display());	
 	fs::write(main,DEFAULT_MAIN)?;
     }   
-    Ok(())
+    Ok(true)
 }
