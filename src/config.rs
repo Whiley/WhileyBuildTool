@@ -86,6 +86,9 @@ impl<'a> Key<'a> {
     pub const fn new(path: &'a [&'a str]) -> Self {
 	Key(path)
     }
+    pub fn to_vec(&self) -> Vec<&'a str> {
+    	self.0.to_vec()
+    }
 }
 
 impl<'a> fmt::Display for Key<'a> {
@@ -160,7 +163,7 @@ impl Config {
             None => Err(Error::Expected(Type::String,key.to_string()))
 	}
     }
-
+    
     /// Responsible for extracting a string array associated with a given key.
     pub fn get_string_array(&self, key: &Key) -> Result<Vec<String>,Error> {
 	// Sanity check key exists
@@ -195,6 +198,27 @@ impl Config {
 	Ok(res)
     }
 
+    /// Responsible for getting the values of all subkeys within a given key.
+    pub fn get_strings(&self, key: &Key) -> Result<Vec<(String,String)>,Error> {
+	// Determine matching subkeys
+	let subkeys = self.find_keys(key)?;
+	// Convert key into a vector
+	let mut subkey = key.to_vec();
+	// Vec to hold results
+	let mut pairs = Vec::new();	
+	// Iterate each key extracting its value as a string.
+	for i in 0..subkeys.len() {
+	    let s = subkeys.get(i).unwrap();
+	    subkey.push(s);
+	    let sk = Key::new(&subkey);
+	    let val = self.get_string(&sk)?;
+	    pairs.push((s.to_string(),val));
+	    subkey.pop();
+	}
+	// Done
+	Ok(pairs)
+    }
+    
     /// Responsible for identifying keys contained (directly) within
     /// this key.
     pub fn find_keys(&self, key: &Key) -> Result<Vec<String>,Error> {

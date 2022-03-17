@@ -18,6 +18,7 @@ pub static PACKAGE_NAME : Key = Key::new(&["package","name"]);
 pub static PACKAGE_AUTHORS : Key = Key::new(&["package","authors"]);
 pub static PACKAGE_VERSION : Key = Key::new(&["package","version"]);
 pub static BUILD_PLATFORMS : Key = Key::new(&["build","platforms"]);
+pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
 
 // ===================================================================
 // Result
@@ -85,7 +86,9 @@ pub struct Build {
     pub version: String,
     /// Identifies what build platforms should be used to build the
     /// package.    
-    pub platforms: Vec<platform::Instance>    
+    pub platforms: Vec<platform::Instance>,
+    /// Identify dependencies for this build
+    pub dependencies: Vec<(String,String)>
 }
 
 impl Build {
@@ -95,7 +98,8 @@ impl Build {
         let name = config.get_string(&PACKAGE_NAME)?;
         let authors = config.get_string_array(&PACKAGE_AUTHORS)?;
         let version = config.get_string(&PACKAGE_VERSION)?;
-        let platforms = config.get_string_array(&BUILD_PLATFORMS)?;        
+        let platforms = config.get_string_array(&BUILD_PLATFORMS)?;
+	let dependencies = config.get_strings(&DEPENDENCIES)?;
         // Construct build information
         let mut ps = Vec::new();        
         for p in &platforms {
@@ -108,7 +112,7 @@ impl Build {
             ps.push(init.apply(config,whileyhome)?);
         }
 	// Done
-	return Ok(Build{name,authors,version,platforms:ps});
+	return Ok(Build{name,authors,version,platforms:ps,dependencies});
     }
 
     /// Determine the list of know build artifacts.  This includes
@@ -183,6 +187,7 @@ impl Build {
     }
 
     fn initialise(&self, whileyhome: &Path) {
+	// Construct local folders as necessary.
 	for ba in self.manifest() {
 	    // Construct any missing binary folders.
 	    match ba {
@@ -195,6 +200,10 @@ impl Build {
 		_ => {
 		}
 	    };
+	}
+	// Resolve dependencies
+	for (k,v) in &self.dependencies {
+	    println!("DEP {} => {}",k,v);
 	}
     }
 }
