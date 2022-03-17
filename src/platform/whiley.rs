@@ -137,12 +137,11 @@ impl platform::JavaInstance for WhileyPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Vec<build::Marker> {	
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {	
 	match parse_output(&self.source,output) {
-	    Some(markers) => markers,
+	    Some(markers) => Ok(markers),
 	    None => {
-		error!("wyc: {}",output);
-		Vec::new()
+		Err(output.to_string())
 	    }
 	}
     }

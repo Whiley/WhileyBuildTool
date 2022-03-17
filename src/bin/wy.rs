@@ -29,11 +29,15 @@ fn main() -> Result<(),Box<dyn Error>> {
     // Initialise Whiley home directory
     let whileyhome = init_whileyhome();
     // Dispatch on outcome
-    match matches.subcommand() {
+    let ok = match matches.subcommand() {
 	Some(("build", _)) => build(&whileyhome),
 	Some(("clean", _)) => clean(&whileyhome),
 	Some(("init", _)) => init(&whileyhome),
 	Some(("install", _)) => install(&whileyhome),
 	_ => unreachable!()
-    }
+    }?;
+    // Determine appropriate exit code
+    let exitcode = if ok { 0 } else { 1 };
+    // Done
+    std::process::exit(exitcode);
 }

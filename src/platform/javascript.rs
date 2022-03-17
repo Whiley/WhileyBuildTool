@@ -89,16 +89,14 @@ impl platform::JavaInstance for JavaScriptPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Vec<build::Marker> {
-	if output.len() > 0 {
-            // In principle its possible to get here if there is some
-            // kind of internal failure.  However, it remains an issue
-            // at this stage as to how to process it.
-	    error!("wyjs: {}",output);
-            panic!("deadcode reached!");
-        }
-        Vec::new()
-    }
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
+	if output.len() > 0 {	
+	    // The only way to get here should be through an internal failure.
+	    Err(output.to_string())
+	} else {
+	    Ok(Vec::new())
+	}	
+    }    
 }
 
 // ========================================================================

@@ -9,7 +9,7 @@ use crate::{init_registry};
 
 const REPOSITORY_NAME : &'static str = "repository";
 
-pub fn install(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+pub fn install(whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
     // Read build configuration
     let config_file = read_to_string("wy.toml")?;
     // Parse configuration
@@ -48,7 +48,7 @@ pub fn install(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
     //
     zip.finish()?;
     info!("Installed {} ...",pkg);    
-    Ok(())
+    Ok(true)
 }
 
 fn add_file<T>(buf: &PathBuf, zip: &mut zip::ZipWriter<T>)  -> Result<(),Box<dyn Error>>

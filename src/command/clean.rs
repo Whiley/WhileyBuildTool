@@ -7,7 +7,7 @@ use crate::build::{Artifact,Build};
 use crate::{init_registry};
 
 // Clean command
-pub fn clean(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
+pub fn clean(whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
     // Read build configuration
     let config_file = fs::read_to_string("wy.toml").expect("Error reading build configuration!");
     // Parse configuration
@@ -30,6 +30,6 @@ pub fn clean(whileyhome: &Path) -> Result<(),Box<dyn Error>> {
 	}
     }    
     //
-    Ok(())
+    Ok(true)
 }
 
