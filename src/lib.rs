@@ -3,6 +3,7 @@ pub mod command;
 pub mod config;
 pub mod jvm;
 pub mod maven;
+pub mod package;
 pub mod platform;
 mod util;
 
@@ -34,9 +35,14 @@ pub fn init_logging(level: LevelFilter) {
 	.build(Root::builder().appender("stdout").build(level))
 	.unwrap();
     //
-    let _handle = log4rs::init_config(config).unwrap();    
+    let _handle = log4rs::init_config(config).unwrap();
 }
 
+/// Initialise the home directory for this tool.  This is where the
+/// package repository and the maven cache live, along with other
+/// configuration files as needed.  This first checks whether or not
+/// the WHILEYHOME environment variable is specified, in which case it
+/// uses that.
 pub fn init_whileyhome() -> PathBuf {
     // Determine Whiley home directory ($HOME/.whiley)
     let whileyhome = match env::var("WHILEYHOME") {
@@ -67,6 +73,9 @@ fn default_whileyhome() -> PathBuf {
     p
 }
 
+/// Initialise classpath for a given set of Maven dependencies.  This
+/// means resolving those dependencies as necessary from Maven
+/// central.
 pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Vec<PathBuf> {
     // Append maven into Whiley home
     let mut mavenhome = PathBuf::from(whileyhome);
@@ -96,7 +105,7 @@ pub fn init_registry<'a>() -> platform::Registry<'a> {
     // Register the JavaScript platform which is responsible for compiling WyIL files into JavaScript files.
     r.register("js",&javascript::DESCRIPTOR);
     // Register the Boogie platform which is responsible for compiling WyIL files into BPL files.
-    r.register("boogie",&boogie::DESCRIPTOR);    
+    r.register("boogie",&boogie::DESCRIPTOR);
     // Done
     r
 }

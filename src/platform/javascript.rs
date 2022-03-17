@@ -1,5 +1,4 @@
 use std::path::{Path,PathBuf};
-use log::{error};
 use crate::config::{Config,Key,Error};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
@@ -39,7 +38,7 @@ impl JavaScriptPlatform {
     fn target_path(&self) -> PathBuf {
 	let mut bin = PathBuf::from(&self.target);
 	let mut name = self.name.clone();
-	name.push_str(".js");	
+	name.push_str(".js");
 	bin.push(&name);
 	bin
     }
@@ -80,23 +79,23 @@ impl platform::JavaInstance for JavaScriptPlatform {
     fn manifest(&self) -> Vec<build::Artifact> {
 	let mut artifacts = Vec::new();
 	// Register binary folder (if applicable)
-	if(self.target != whiley::TARGET_DEFAULT) {
+	if self.target != whiley::TARGET_DEFAULT {
 	    artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
 	}
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::BinaryFile(bin));	
+	artifacts.push(Artifact::BinaryFile(bin));
 	//
 	artifacts
     }
     fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
-	if output.len() > 0 {	
+	if output.len() > 0 {
 	    // The only way to get here should be through an internal failure.
 	    Err(output.to_string())
 	} else {
 	    Ok(Vec::new())
-	}	
-    }    
+	}
+    }
 }
 
 // ========================================================================
@@ -106,7 +105,7 @@ impl platform::JavaInstance for JavaScriptPlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());

@@ -1,4 +1,4 @@
-use clap::{arg, App, AppSettings};
+use clap::{arg, Command};
 use std::error::Error;
 use log::LevelFilter;
 use whiley::command::{build,clean,init,install};
@@ -6,22 +6,22 @@ use whiley::{init_logging,init_whileyhome};
 
 fn main() -> Result<(),Box<dyn Error>> {
     // Parse command-line arguments
-    let matches = App::new("wy")
+    let matches = Command::new("wy")
 	.about("Whiley Build Tool")
-	.version("0.6.0")	
-	.setting(AppSettings::SubcommandRequiredElseHelp)
+	.version("0.6.0")
+        .subcommand_required(true)
 	.arg(arg!(--verbose "Show verbose output"))
 	.subcommand(
-	    App::new("build").about("Build local package(s)"))
+	    Command::new("build").about("Build local package(s)"))
 	.subcommand(
-	    App::new("clean").about("Remove all generated (binary) files"))
+	    Command::new("clean").about("Remove all generated (binary) files"))
 	.subcommand(
-	    App::new("init").about("Create a new Whiley package in an existing directory"))
+	    Command::new("init").about("Create a new Whiley package in an existing directory"))
 	.subcommand(
-	    App::new("install").about("Install package in local repository"))	
+	    Command::new("install").about("Install package in local repository"))
 	.get_matches();
     // Extract top-level flags
-    let verbose = matches.is_present("verbose");    
+    let verbose = matches.is_present("verbose");
     // Initialise logging
     if verbose {
 	init_logging(LevelFilter::Info);
