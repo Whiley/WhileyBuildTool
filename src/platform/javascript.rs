@@ -1,9 +1,11 @@
+use std::error::Error;
 use std::path::{Path,PathBuf};
-use crate::config::{Config,Key,Error};
+use crate::config;
+use crate::config::{Config,Key};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
-use crate::platform::whiley;
+use crate::platform::{PluginError,whiley};
 pub static STANDARD_DEFAULT : &'static str = "ES6";
 static BUILD_JAVASCRIPT_TARGET : Key = Key::new(&["build","js","target"]);
 static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
@@ -88,10 +90,10 @@ impl platform::JavaInstance for JavaScriptPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,Box<dyn Error>> {
 	if output.len() > 0 {
 	    // The only way to get here should be through an internal failure.
-	    Err(output.to_string())
+	    Err(Box::new(PluginError{name:"wyjs".to_string(),message: output.to_string()}))
 	} else {
 	    Ok(Vec::new())
 	}
@@ -105,7 +107,7 @@ impl platform::JavaInstance for JavaScriptPlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,config::Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());

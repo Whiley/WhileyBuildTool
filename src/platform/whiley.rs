@@ -1,10 +1,13 @@
+use std::error::Error;
 use std::path::{Path,PathBuf};
 use glob::glob;
-use crate::config::{Config,Key,Error};
+use crate::config;
+use crate::config::{Config,Key};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
 use crate::jvm;
 use crate::platform;
+use crate::platform::{PluginError};
 
 /// Default setting for whether building library or binary.
 pub static LIBRARY_DEFAULT : bool = false;
@@ -136,11 +139,11 @@ impl platform::JavaInstance for WhileyPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,Box<dyn Error>> {
 	match parse_output(&self.source,output) {
 	    Some(markers) => Ok(markers),
 	    None => {
-		Err(output.to_string())
+		Err(Box::new(PluginError{name:"wyc".to_string(),message: output.to_string()}))
 	    }
 	}
     }
@@ -181,7 +184,7 @@ pub struct Descriptor {}
 const TMP : &'static str = "dependencies";
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,config::Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let linking = !config.get_bool(&BUILD_WHILEY_LIBRARY).unwrap_or(LIBRARY_DEFAULT);

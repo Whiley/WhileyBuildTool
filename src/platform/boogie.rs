@@ -1,9 +1,11 @@
+use std::error::Error;
 use std::path::{Path,PathBuf};
-use crate::config::{Config,Key,Error};
+use crate::config;
+use crate::config::{Config,Key};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
-use crate::platform::whiley;
+use crate::platform::{PluginError,whiley};
 
 pub static VERIFY_DEFAULT : bool = true;
 pub static VERBOSE_DEFAULT : bool = false;
@@ -121,11 +123,11 @@ impl platform::JavaInstance for BoogiePlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,Box<dyn Error>> {
 	match whiley::parse_output(&self.source,output) {
 	    Some(markers) => Ok(markers),
 	    None => {
-		Err(output.to_string())
+	        Err(Box::new(PluginError{name:"wyboogie".to_string(),message: output.to_string()}))
 	    }
 	}
     }
@@ -138,7 +140,7 @@ impl platform::JavaInstance for BoogiePlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,config::Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_SOURCE).unwrap_or(whiley::SOURCE_DEFAULT.to_string());

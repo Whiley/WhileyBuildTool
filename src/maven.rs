@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs;
 use std::path::{Path,PathBuf};
-use log::{info};
+use log::{info,error};
 use reqwest;
 use reqwest::Url;
 
@@ -10,7 +10,7 @@ use reqwest::Url;
 pub struct MavenArtifact<'a> {
     group_id : &'a str,
     artifact_id : &'a str,
-    version: &'a str    
+    version: &'a str
 }
 
 impl<'a> MavenArtifact<'a> {
@@ -34,7 +34,7 @@ impl<'a> MavenArtifact<'a> {
     }
 
     pub fn to_url(&self, base: &Url) -> Url {
-	let mut s = String::new();	
+	let mut s = String::new();
 	s.push_str(self.group_id.replace(".","/").as_str());
 	s.push_str("/");
 	s.push_str(self.artifact_id);
@@ -49,7 +49,7 @@ impl<'a> MavenArtifact<'a> {
 
 impl<'a> fmt::Display for MavenArtifact<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{}:{}:{}",self.group_id,self.artifact_id,self.version)	
+        write!(f,"{}:{}:{}",self.group_id,self.artifact_id,self.version)
     }
 }
 
@@ -76,17 +76,46 @@ impl<T: AsRef<Path>> MavenResolver<T> {
     pub fn get<'b>(&self, artifact: MavenArtifact<'b>) -> Result<PathBuf,Box<dyn Error>> {
 	// Determine jar name
 	let mut jar = PathBuf::new();
-	jar.push(self.dir.as_ref());	
+	jar.push(self.dir.as_ref());
 	jar.push(artifact.to_jarname());
 	//
 	if !jar.as_path().exists() {
-	    // Cache miss, try to download
+            // cache miss, try to download
 	    let url = artifact.to_url(&self.url);
-	    info!("Downloading {}",url.as_str());
-	    let response = reqwest::blocking::get(url)?.bytes()?;
-	    fs::write(jar.as_path(),response)?;
+	    let response = reqwest::blocking::get(url.clone())?;
+            // Check status code
+            if response.status().is_success() {
+                info!("Downloaded {}",url.as_str());
+	        fs::write(jar.as_path(),response.bytes()?)?;
+            } else {
+                error!("Downloading {} ({:?})",url.as_str(),response.status());
+                return Err(Box::new(ResolutionError{name:artifact.to_jarname()}));
+            }
 	}
 	//
 	Ok(jar)
     }
 }
+
+// ================================================================
+// Resolution Error
+// ================================================================
+
+#[derive(Clone)]
+struct ResolutionError {
+    name: String
+}
+
+impl fmt::Display for ResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "failed resolving maven package {}",self.name)
+    }
+}
+
+impl fmt::Debug for ResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "failed resolving maven package {}",self.name)
+    }
+}
+
+impl Error for ResolutionError {}

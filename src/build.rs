@@ -175,10 +175,10 @@ impl Build {
     }
 
     /// Run a Java platform
-    fn run_java(&self, i: &dyn JavaInstance, whileyhome: &Path) -> Result<Vec<Marker>,platform::Error> {
+    fn run_java(&self, i: &dyn JavaInstance, whileyhome: &Path) -> Result<Vec<Marker>,Box<dyn error::Error>> {
 	// Initialise classpath as necessary.  This will download Jar
 	// files from Maven central (if not already cached).
-	let cp = init_classpath(&whileyhome,i.dependencies());
+	let cp = init_classpath(&whileyhome,i.dependencies())?;
         // Construct JVM runner
         let jvm = Jvm::new(cp,vec![("WHILEYHOME",&whileyhome)]);
         // Construct command-line arguments
@@ -198,7 +198,7 @@ impl Build {
     fn initialise(&self, whileyhome: &Path) -> Result<(),Box<dyn error::Error>> {
         self.create_binary_folders()?;
         //
-        self.resolve_packages(whileyhome);
+        self.resolve_packages(whileyhome)?;
         // Done
         Ok(())
     }
@@ -226,7 +226,7 @@ impl Build {
     /// Resolve all packages specified as dependencies.  This means
     /// determining appropriate versions and, potentially, downloading
     /// them.
-    fn resolve_packages(&self, whileyhome: &Path) {
+    fn resolve_packages(&self, whileyhome: &Path) -> Result<(),Box<dyn error::Error>> {
         // Append repository into Whiley home
         let mut repo = PathBuf::from(whileyhome);
         repo.push("repository");
@@ -235,7 +235,9 @@ impl Build {
         // Construct Package resolver
         let resolver = PackageResolver::new(repo, base_url);
 	// Resolve package dependencies
-        resolver.resolve(&self.dependencies);
+        resolver.resolve(&self.dependencies)?;
+        // Done
+        Ok(())
     }
 }
 
