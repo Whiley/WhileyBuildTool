@@ -3,6 +3,7 @@ pub mod command;
 pub mod config;
 pub mod jvm;
 pub mod maven;
+pub mod package;
 pub mod platform;
 mod util;
 
@@ -34,7 +35,7 @@ pub fn init_logging(level: LevelFilter) {
 	.build(Root::builder().appender("stdout").build(level))
 	.unwrap();
     //
-    let _handle = log4rs::init_config(config).unwrap();    
+    let _handle = log4rs::init_config(config).unwrap();
 }
 
 pub fn init_whileyhome() -> PathBuf {
@@ -96,7 +97,7 @@ pub fn init_registry<'a>() -> platform::Registry<'a> {
     // Register the JavaScript platform which is responsible for compiling WyIL files into JavaScript files.
     r.register("js",&javascript::DESCRIPTOR);
     // Register the Boogie platform which is responsible for compiling WyIL files into BPL files.
-    r.register("boogie",&boogie::DESCRIPTOR);    
+    r.register("boogie",&boogie::DESCRIPTOR);
     // Done
     r
 }
