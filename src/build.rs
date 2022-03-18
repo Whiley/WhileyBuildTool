@@ -1,13 +1,14 @@
 use std::error;
-use std::fs::{File,read_to_string,create_dir_all};
+use std::fs::{read_to_string,create_dir_all};
 use std::path::Path;
 use std::path::PathBuf;
 use log::{info};
+use reqwest::Url;
 use crate::{init_classpath};
 use crate::util;
 use crate::config::{Config,Key,Error};
 use crate::jvm::{Jvm};
-use crate::package::{Dependency};
+use crate::package::{Dependency, PackageResolver};
 use crate::platform;
 use crate::platform::{Instance,JavaInstance};
 
@@ -20,6 +21,9 @@ pub static PACKAGE_AUTHORS : Key = Key::new(&["package","authors"]);
 pub static PACKAGE_VERSION : Key = Key::new(&["package","version"]);
 pub static BUILD_PLATFORMS : Key = Key::new(&["build","platforms"]);
 pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
+
+/// Default URL from which to resolve package dependencies.
+const PACKAGE_CENTRAL : &str = "https://github.com/Whiley/Repository/raw/master";
 
 // ===================================================================
 // Result
@@ -127,7 +131,7 @@ impl Build {
     /// Run the given build.
     pub fn run(&self, whileyhome: &Path) -> Result<bool,Box<dyn error::Error>> {
 	// Perform startup initialisation(s)
-	self.initialise(whileyhome);
+	self.initialise(whileyhome)?;
 	// Execute each platform in sequence.
 	for p in &self.platforms {
 	    // Execute plugin
@@ -189,7 +193,16 @@ impl Build {
 	i.process(output.as_str())
     }
 
-    fn initialise(&self, whileyhome: &Path) {
+    fn initialise(&self, whileyhome: &Path) -> Result<(),Box<dyn error::Error>> {
+        self.create_binary_folders()?;
+        //
+        self.resolve_packages(whileyhome);
+        // Done
+        Ok(())
+    }
+
+    /// Create binary folder(s) as necessary to store generated files.
+    fn create_binary_folders(&self) -> Result<(),Box<dyn error::Error>> {
 	// Construct local folders as necessary.
 	for ba in self.manifest() {
 	    // Construct any missing binary folders.
@@ -197,14 +210,29 @@ impl Build {
 		Artifact::BinaryFolder(p) => {
 		    if !p.as_path().exists() {
 			info!("Making binary folder {}",p.display());
-			create_dir_all(p);
+			create_dir_all(p)?;
 		    }
 		}
 		_ => {
 		}
 	    };
 	}
-	// Resolve dependencies
+        // Done
+        Ok(())
+    }
+
+    /// Resolve all packages specified as dependencies.  This means
+    /// determining appropriate versions and, potentially, downloading
+    /// them.
+    fn resolve_packages(&self, whileyhome: &Path) {
+        // Append repository into Whiley home
+        let mut repo = PathBuf::from(whileyhome);
+        repo.push("repository");
+        // Parse the base URL
+        let base_url = Url::parse(PACKAGE_CENTRAL).unwrap();
+        // Construct Package resolver
+        let resolver = PackageResolver::new(repo, base_url);
+	// Resolve package dependencies
 	for d in &self.dependencies {
 	    println!("DEP {}",d);
 	}

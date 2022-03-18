@@ -1,5 +1,4 @@
 use std::path::{Path,PathBuf};
-use log::{error};
 use crate::config::{Config,Key,Error};
 use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
@@ -29,14 +28,14 @@ static BUILD_BOOGIE_PROVERNAME : Key = Key::new(&["build","boogie","proverName"]
 /// to run the WhileyCompiler.
 static MAVEN_DEPS : &'static [&str] = &[
     whiley::MAVEN_DEPS[0], // jmodelgen
-    whiley::MAVEN_DEPS[1], // wyc    
+    whiley::MAVEN_DEPS[1], // wyc
     "org.whiley:wyboogie:0.4.1",
 ];
 
 pub struct BoogiePlatform {
     name: String,
     source: String,
-    binary: String,    
+    binary: String,
     target: String,
     verify: bool,
     verbose: bool,
@@ -58,7 +57,7 @@ impl BoogiePlatform {
     fn target_path(&self) -> PathBuf {
 	let mut bin = PathBuf::from(&self.target);
 	let mut name = self.name.clone();
-	name.push_str(".bpl");	
+	name.push_str(".bpl");
 	bin.push(&name);
 	bin
     }
@@ -74,7 +73,7 @@ impl platform::JavaInstance for BoogiePlatform {
     fn arguments(&self) -> Vec<String> {
         let mut args = Vec::new();
         // Class to invoke
-        args.push("wyboogie.Main".to_string());	
+        args.push("wyboogie.Main".to_string());
         // Target name
 	args.push(format!("--output={}",self.name));
 	args.push(format!("--wyildir={}",self.binary));
@@ -113,23 +112,23 @@ impl platform::JavaInstance for BoogiePlatform {
     fn manifest(&self) -> Vec<build::Artifact> {
 	let mut artifacts = Vec::new();
 	// Register binary folder (if applicable)
-	if(self.target != whiley::TARGET_DEFAULT) {
+	if self.target != whiley::TARGET_DEFAULT {
 	    artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
-	}	
+	}
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::BinaryFile(bin));	
+	artifacts.push(Artifact::BinaryFile(bin));
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {	
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
 	match whiley::parse_output(&self.source,output) {
 	    Some(markers) => Ok(markers),
 	    None => {
 		Err(output.to_string())
 	    }
 	}
-    }    
+    }
 }
 
 // ========================================================================
@@ -139,7 +138,7 @@ impl platform::JavaInstance for BoogiePlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
+    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_SOURCE).unwrap_or(whiley::SOURCE_DEFAULT.to_string());

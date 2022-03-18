@@ -38,6 +38,11 @@ pub fn init_logging(level: LevelFilter) {
     let _handle = log4rs::init_config(config).unwrap();
 }
 
+/// Initialise the home directory for this tool.  This is where the
+/// package repository and the maven cache live, along with other
+/// configuration files as needed.  This first checks whether or not
+/// the WHILEYHOME environment variable is specified, in which case it
+/// uses that.
 pub fn init_whileyhome() -> PathBuf {
     // Determine Whiley home directory ($HOME/.whiley)
     let whileyhome = match env::var("WHILEYHOME") {
@@ -68,6 +73,9 @@ fn default_whileyhome() -> PathBuf {
     p
 }
 
+/// Initialise classpath for a given set of Maven dependencies.  This
+/// means resolving those dependencies as necessary from Maven
+/// central.
 pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Vec<PathBuf> {
     // Append maven into Whiley home
     let mut mavenhome = PathBuf::from(whileyhome);

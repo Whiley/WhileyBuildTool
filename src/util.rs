@@ -46,7 +46,7 @@ pub struct LineIter<'a> {
 }
 
 impl<'a> LineIter<'a> {
-    // Construct a new line iterator from 
+    // Construct a new line iterator from
     pub fn new(contents: &'a str) -> Self {
 	let iter = contents.chars();
 	LineIter{contents,iter,offset:0}
@@ -55,10 +55,10 @@ impl<'a> LineIter<'a> {
 
 impl<'a> Iterator for LineIter<'a> {
     type Item = Line<'a>;
-    
+
     fn next(&mut self) -> Option<Self::Item> {
-	let start = self.offset;	
-	let mut cr = false;
+	let start = self.offset;
+	let mut cr;
 	// Perform initial match such that, if the underlying iterator
 	// returns None straight away, we return None.
 	match self.iter.next() {
@@ -72,8 +72,8 @@ impl<'a> Iterator for LineIter<'a> {
 	    None => { return None; }
 	}
 	// Skip over character just parsed
-	self.offset = self.offset + 1;	
-	let mut end = start + 1;	
+	self.offset = self.offset + 1;
+	let mut end = start + 1;
 	// Advance until eiher a LF is found, or we reach the end of
 	// the iterator.
 	loop {
@@ -99,5 +99,5 @@ impl<'a> Iterator for LineIter<'a> {
 /// Something tells me could do this more nicely using IntoIterator or
 /// something.
 pub fn line_offsets<'a>(contents: &'a str) -> LineIter<'a> {
-    LineIter::new(contents)    
+    LineIter::new(contents)
 }
