@@ -11,9 +11,6 @@ readme = "README.md"
 [[bin]]
 name = "wy"
 
-[[bin]]
-name = "wyc"
-
 [dependencies]
 clap="3.1"
 log="0.4"

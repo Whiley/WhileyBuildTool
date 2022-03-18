@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs;
 use std::path::{Path,PathBuf};
-use log::{info};
+use log::{error,info};
 use reqwest;
 use reqwest::Url;
 
@@ -10,7 +10,7 @@ use reqwest::Url;
 // Dependency
 // ================================================================
 
-/// Identifies
+#[derive(Clone)]
 pub struct Dependency {
     name: String,
     version: String
@@ -80,11 +80,40 @@ impl<T: AsRef<Path>> PackageResolver<T> {
 	if !zip.as_path().exists() {
 	    // Cache miss, try to download
 	    let url = dep.to_url(&self.url);
-	    info!("Downloading {}",url.as_str());
-	    let response = reqwest::blocking::get(url)?.bytes()?;
-	    fs::write(zip.as_path(),response)?;
+	    let response = reqwest::blocking::get(url.clone())?;
+            // Check status code
+            if response.status().is_success() {
+                info!("Downloaded {}",url.as_str());
+	        fs::write(zip.as_path(),response.bytes()?)?;
+            } else {
+                error!("Downloading {} ({:?})",url.as_str(),response.status());
+                return Err(Box::new(ResolutionError{dep:(*dep).clone()}));
+            }
 	}
 	//
 	Ok(zip)
     }
 }
+
+// ================================================================
+// Resolution Error
+// ================================================================
+
+#[derive(Clone)]
+struct ResolutionError {
+    dep: Dependency
+}
+
+impl fmt::Display for ResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "failed resolving package {}",self.dep)
+    }
+}
+
+impl fmt::Debug for ResolutionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "failed resolving package {}",self.dep)
+    }
+}
+
+impl Error for ResolutionError {}

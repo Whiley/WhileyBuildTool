@@ -7,6 +7,7 @@ pub mod package;
 pub mod platform;
 mod util;
 
+use std::error::Error;
 use std::path::{Path,PathBuf};
 use std::env;
 use std::fs;
@@ -76,7 +77,7 @@ fn default_whileyhome() -> PathBuf {
 /// Initialise classpath for a given set of Maven dependencies.  This
 /// means resolving those dependencies as necessary from Maven
 /// central.
-pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Vec<PathBuf> {
+pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Result<Vec<PathBuf>,Box<dyn Error>> {
     // Append maven into Whiley home
     let mut mavenhome = PathBuf::from(whileyhome);
     mavenhome.push("maven");
@@ -89,10 +90,10 @@ pub fn init_classpath(whileyhome: &Path, deps : &[&str]) -> Vec<PathBuf> {
     //
     for dep in deps {
     	let mdep = MavenArtifact::new(dep).unwrap();
-	classpath.push(resolver.get(mdep).unwrap());
+	classpath.push(resolver.get(mdep)?);
     }
     // Done
-    classpath
+    Ok(classpath)
 }
 
 /// Initialise the default platform registry.  This basically provides
