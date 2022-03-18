@@ -1,5 +1,4 @@
 use std::path::{Path,PathBuf};
-use log::{error};
 use glob::glob;
 use crate::config::{Config,Key,Error};
 use crate::build;
@@ -45,7 +44,7 @@ pub struct WhileyPlatform {
 impl WhileyPlatform {
     /// Match all whiley files to be compiled for this package.
     fn match_includes(&self) -> Vec<String> {
-        // TODO: this is all rather ugly if you ask me.	
+        // TODO: this is all rather ugly if you ask me.
 	let mut matches = Vec::new();
         let mut includes = String::new();
         includes.push_str(self.source.as_str());
@@ -69,7 +68,7 @@ impl WhileyPlatform {
     fn target_path(&self) -> PathBuf {
 	let mut bin = PathBuf::from(&self.target);
 	let mut name = self.name.clone();
-	name.push_str(".wyil");	
+	name.push_str(".wyil");
 	bin.push(&name);
 	bin
     }
@@ -128,7 +127,7 @@ impl platform::JavaInstance for WhileyPlatform {
 	let bin = self.target_path();
 	artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
 	artifacts.push(Artifact::BinaryFile(bin));
-	artifacts.push(Artifact::SourceFolder(PathBuf::from(&self.source)));	
+	artifacts.push(Artifact::SourceFolder(PathBuf::from(&self.source)));
 	for i in self.match_includes() {
 	    let mut p = PathBuf::from(&self.source);
 	    p.push(i);
@@ -137,7 +136,7 @@ impl platform::JavaInstance for WhileyPlatform {
 	//
 	artifacts
     }
-    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {	
+    fn process(&self, output: &str) -> Result<Vec<build::Marker>,platform::Error> {
 	match parse_output(&self.source,output) {
 	    Some(markers) => Ok(markers),
 	    None => {
@@ -179,13 +178,13 @@ pub fn parse_output(source: &str, output: &str) -> Option<Vec<build::Marker>> {
 
 pub struct Descriptor {}
 
-const tmp : &'static str = "dependencies";
+const TMP : &'static str = "dependencies";
 
 impl platform::Descriptor for Descriptor {
     fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
-	let linking = !config.get_bool(&BUILD_WHILEY_LIBRARY).unwrap_or(LIBRARY_DEFAULT);	
+	let linking = !config.get_bool(&BUILD_WHILEY_LIBRARY).unwrap_or(LIBRARY_DEFAULT);
 	let source = config.get_string(&BUILD_WHILEY_SOURCE).unwrap_or(SOURCE_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_WHILEY_TARGET).unwrap_or(TARGET_DEFAULT.to_string());
 	let includes = config.get_string(&BUILD_WHILEY_INCLUDES).unwrap_or(INCLUDES_DEFAULT.to_string());
@@ -194,7 +193,7 @@ impl platform::Descriptor for Descriptor {
 	// FIXME: this should be placed somewhere else, and use a
 	// resolved.
         for s in config.find_keys(&DEPENDENCIES).unwrap_or(Vec::new()) {
-            let a = [&tmp,s.as_str()];
+            let a = [&TMP,s.as_str()];
             let k = Key::new(&a);
 	    let d = config.get_string(&k)?;
 	    let mut pb = PathBuf::new();

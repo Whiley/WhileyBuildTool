@@ -1,7 +1,6 @@
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
-use std::io::{self, Write};
 
 pub struct Jvm<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> {
     classpath: Vec<T>,
@@ -14,7 +13,7 @@ impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
     }
 
     pub fn exec(self, _args: &[&str]) -> String {
-	let mut args = Vec::new();	
+	let mut args = Vec::new();
 	// Configure classpath
 	let mut cp = String::new();
 	//
@@ -34,12 +33,12 @@ impl<T: AsRef<Path>, K: AsRef<OsStr>, V: AsRef<OsStr>> Jvm<T,K,V> {
 	    .args(args)
 	    .envs(self.env)
 	    .output()
-	    .expect("Java is not installed");	
+	    .expect("Java is not installed");
 	// Merge stdout/stderr together
 	let mut r = String::from_utf8(output.stdout).unwrap();
 	r.push_str(&String::from_utf8(output.stderr).unwrap());
 	// Done
-	r	    
+	r
     }
 }
 
@@ -52,4 +51,3 @@ pub fn classpath_sep() -> &'static str {
 pub fn classpath_sep() -> &'static str {
     ";"
 }
-
