@@ -38,8 +38,8 @@ pub static MAVEN_DEPS : &'static [&str] = &[
 pub struct WhileyPlatform {
     name: String,
     linking: bool,
-    source: String,
-    target: String,
+    source: PathBuf,
+    target: PathBuf,
     includes: String,
     whileypath: Vec<String>
 }
@@ -50,16 +50,17 @@ impl WhileyPlatform {
         // TODO: this is all rather ugly if you ask me.
 	let mut matches = Vec::new();
         let mut includes = PathBuf::new();
-	includes.push(self.source.as_str());
+	includes.push(self.source);
         includes.push(self.includes.as_str());
 	let mut sincludes = includes.to_str().unwrap();
         //
         for entry in glob(&sincludes).expect("invalid pattern for key \"build.whiley.includes\"") {
             match entry {
                 Ok(path) => {
-                    let f = path.into_os_string().into_string().unwrap();
-                    let n = self.source.len()+1;
-                    matches.push(f[n..].to_string());
+                    //let f = path.into_os_string().into_string().unwrap();
+                    //let n = self.source.len()+1;
+		    let f = path.strip_prefix(self.source).unwrap();
+                    matches.push(f.to_str().unwrap().to_string());
                 }
                 Err(e) => println!("{:?}", e)
             }
@@ -101,12 +102,12 @@ impl platform::JavaInstance for WhileyPlatform {
         // Whiley source dir
         let mut source = String::new();
         source.push_str("--whileydir=");
-        source.push_str(self.source.as_str());
+        source.push_str(self.source.to_str().unwrap());
         args.push(source);
         // Whiley bin dir
         let mut target = String::new();
         target.push_str("--wyildir=");
-        target.push_str(self.target.as_str());
+        target.push_str(self.target.to_str().unwrap());
         args.push(target);
         // Whiley path
         let mut whileypath = String::new();
@@ -149,7 +150,7 @@ impl platform::JavaInstance for WhileyPlatform {
     }
 }
 
-pub fn parse_output(source: &str, output: &str) -> Option<Vec<build::Marker>> {
+pub fn parse_output(source: &PathBuf, output: &str) -> Option<Vec<build::Marker>> {
     let mut markers = Vec::new();
     // Process each line of output
     for line in output.lines() {
@@ -160,7 +161,7 @@ pub fn parse_output(source: &str, output: &str) -> Option<Vec<build::Marker>> {
 	}
 	// Parse components
 	let kind = build::Kind::SyntaxError;
-	let mut path = PathBuf::from(source);
+	let mut path = source.clone();
 	path.push(split[0]);
 	let start = split[1].parse();
 	let end = split[2].parse();
@@ -188,8 +189,8 @@ impl platform::Descriptor for Descriptor {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let linking = !config.get_bool(&BUILD_WHILEY_LIBRARY).unwrap_or(LIBRARY_DEFAULT);
-	let source = config.get_string(&BUILD_WHILEY_SOURCE).unwrap_or(SOURCE_DEFAULT.to_string());
-	let target = config.get_string(&BUILD_WHILEY_TARGET).unwrap_or(TARGET_DEFAULT.to_string());
+	let source = config.get_path(&BUILD_WHILEY_SOURCE).unwrap_or(PathBuf::from(SOURCE_DEFAULT));
+	let target = config.get_path(&BUILD_WHILEY_TARGET).unwrap_or(PathBuf::from(TARGET_DEFAULT));
 	let includes = config.get_string(&BUILD_WHILEY_INCLUDES).unwrap_or(INCLUDES_DEFAULT.to_string());
         // Construct whileypath?
         let mut whileypath = Vec::new();

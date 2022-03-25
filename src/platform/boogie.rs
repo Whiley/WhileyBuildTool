@@ -124,7 +124,9 @@ impl platform::JavaInstance for BoogiePlatform {
 	artifacts
     }
     fn process(&self, output: &str) -> Result<Vec<build::Marker>,Box<dyn Error>> {
-	match whiley::parse_output(&self.source,output) {
+	/// FIXME: this is broken!
+	let path = PathBuf::from(self.source);
+	match whiley::parse_output(&path,output) {
 	    Some(markers) => Ok(markers),
 	    None => {
 	        Err(Box::new(PluginError{name:"wyboogie".to_string(),message: output.to_string()}))
