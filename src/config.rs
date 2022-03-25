@@ -1,5 +1,6 @@
 use std::error;
 use std::fmt;
+use std::path::{PathBuf};
 use toml;
 use toml::{Value};
 
@@ -217,6 +218,18 @@ impl Config {
 	}
 	// Done
 	Ok(pairs)
+    }
+
+    /// Responsible for get the value of a given key as a path.
+    pub fn get_path(&self, key: &Key) -> Result<PathBuf,Error> {
+	let value = self.get_string(key)?;
+	let mut result = PathBuf::new();
+	// Split based on '/'
+	for s in value.split("/") {
+	    result.push(s);
+	}
+	// done
+	Ok(result)
     }
     
     /// Responsible for identifying keys contained (directly) within
