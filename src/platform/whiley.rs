@@ -50,7 +50,7 @@ impl WhileyPlatform {
         // TODO: this is all rather ugly if you ask me.
 	let mut matches = Vec::new();
         let mut includes = PathBuf::new();
-	includes.push(self.source);
+	includes.push(&self.source);
         includes.push(self.includes.as_str());
 	let mut sincludes = includes.to_str().unwrap();
         //
@@ -59,7 +59,7 @@ impl WhileyPlatform {
                 Ok(path) => {
                     //let f = path.into_os_string().into_string().unwrap();
                     //let n = self.source.len()+1;
-		    let f = path.strip_prefix(self.source).unwrap();
+		    let f = path.strip_prefix(&self.source).unwrap();
                     matches.push(f.to_str().unwrap().to_string());
                 }
                 Err(e) => println!("{:?}", e)
