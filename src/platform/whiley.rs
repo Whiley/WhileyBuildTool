@@ -49,12 +49,12 @@ impl WhileyPlatform {
     fn match_includes(&self) -> Vec<String> {
         // TODO: this is all rather ugly if you ask me.
 	let mut matches = Vec::new();
-        let mut includes = String::new();
-        includes.push_str(self.source.as_str());
-        includes.push_str("/");
-        includes.push_str(self.includes.as_str());
+        let mut includes = PathBuf::new();
+	includes.push(self.source.as_str());
+        includes.push(self.includes.as_str());
+	let mut sincludes = includes.to_str().unwrap();
         //
-        for entry in glob(&includes).expect("invalid pattern for key \"build.whiley.includes\"") {
+        for entry in glob(&sincludes).expect("invalid pattern for key \"build.whiley.includes\"") {
             match entry {
                 Ok(path) => {
                     let f = path.into_os_string().into_string().unwrap();
