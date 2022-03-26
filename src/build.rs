@@ -185,10 +185,12 @@ impl Build {
         let args : Vec<String> = i.arguments();
         // Convert into Vec<&str> for exec
         let str_args : Vec<&str> = args.iter().map(String::as_str).collect();
-        //
+        // Log Java command
         info!("Executing java {:?}",str_args);
         // Go!
         let output = jvm.exec(&str_args);
+	// Log output returned from Java
+	info!("Java output \"{}\"",output.as_str());
 	// Post process the response
 	i.process(output.as_str())
     }
