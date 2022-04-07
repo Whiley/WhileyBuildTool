@@ -10,7 +10,7 @@ use crate::platform;
 use crate::platform::{PluginError};
 
 /// Default setting for whether building library or binary.
-pub static LIBRARY_DEFAULT : bool = false;
+pub static LIBRARY_DEFAULT : bool = true;
 /// Default path for whiley source files.
 pub static SOURCE_DEFAULT : &'static str = "src";
 /// Default path for whiley binary files.
