@@ -251,7 +251,7 @@ impl Build {
 pub enum Artifact {
     SourceFile(PathBuf),
     SourceFolder(PathBuf),
-    BinaryFile(PathBuf),
+    BinaryFile(PathBuf, bool),
     BinaryFolder(PathBuf)
 }
 

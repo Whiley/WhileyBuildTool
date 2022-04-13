@@ -7,6 +7,7 @@ use crate::build;
 use crate::build::{PACKAGE_NAME,Artifact};
 use crate::platform;
 use crate::platform::{PluginError,whiley};
+use crate::jvm;
 pub static STANDARD_DEFAULT : &'static str = "ES6";
 static BUILD_JAVASCRIPT_TARGET : Key = Key::new(&["build","js","target"]);
 static BUILD_JAVASCRIPT_STANDARD : Key = Key::new(&["build","js","standard"]);
@@ -29,7 +30,8 @@ pub struct JavaScriptPlatform {
     source: String,
     target: String,
     standard: String,
-    includes: Vec<String>
+    includes: Vec<String>,
+    whileypath: Vec<String>
 }
 
 impl JavaScriptPlatform {
@@ -93,6 +95,17 @@ impl platform::JavaInstance for JavaScriptPlatform {
 	//
 	args.push("-s".to_string());
 	args.push(self.standard.clone());
+        // Whiley path
+        let mut whileypath = String::new();
+        if self.whileypath.len() > 0 {
+            whileypath.push_str("--whileypath=");
+            whileypath.push_str(self.whileypath.get(0).unwrap());
+            for e in &self.whileypath[1..] {
+                whileypath.push_str(jvm::classpath_sep());
+                whileypath.push_str(e);
+            }
+	    args.push(whileypath);
+        }
         //
         args.append(&mut self.match_includes());
         //
@@ -106,7 +119,7 @@ impl platform::JavaInstance for JavaScriptPlatform {
 	}
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::BinaryFile(bin));
+	artifacts.push(Artifact::BinaryFile(bin,false));
 	// Register any supplementary files
 	for s in self.match_natives() {
 	    artifacts.push(Artifact::SourceFile(PathBuf::from(&s)));
@@ -131,15 +144,31 @@ impl platform::JavaInstance for JavaScriptPlatform {
 pub struct Descriptor {}
 
 impl platform::Descriptor for Descriptor {
-    fn apply<'a>(&self, config: &'a Config, _: &Path) -> Result<platform::Instance,config::Error> {
+    fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,config::Error> {
 	// Extract configuration (if any)
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());
 	let target = config.get_string(&BUILD_JAVASCRIPT_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());
 	let standard = config.get_string(&BUILD_JAVASCRIPT_STANDARD).unwrap_or(STANDARD_DEFAULT.to_string());
 	let includes = config.get_string_array(&BUILD_JAVASCRIPT_INCLUDES).unwrap_or(Vec::new());
+        // Construct whileypath?
+        let mut whileypath = Vec::new();
+	// FIXME: this should be placed somewhere else, and use a
+	// resolved.
+        for s in config.find_keys(&whiley::DEPENDENCIES).unwrap_or(Vec::new()) {
+            let a = [&whiley::TMP,s.as_str()];
+            let k = Key::new(&a);
+	    let d = config.get_string(&k)?;
+	    let mut pb = PathBuf::new();
+	    pb.push(whileyhome);
+	    pb.push("repository");
+	    pb.push(format!("{}-v{}.zip",&s,&d));
+	    // FIXME: whileypath should be Vec of PathBuf
+	    let arg = pb.into_os_string().into_string().unwrap();
+	    whileypath.push(arg);
+        }
 	// Construct new instance on the heap
-	let instance = Box::new(JavaScriptPlatform{name,source,target,standard,includes});
+	let instance = Box::new(JavaScriptPlatform{name,source,target,standard,includes,whileypath});
 	// Return generic instance
 	Ok(platform::Instance::Java(instance))
     }
