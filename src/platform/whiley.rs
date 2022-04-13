@@ -32,7 +32,7 @@ pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.9",
+    "org.whiley:wyc:0.10.10",
 ];
 
 pub struct WhileyPlatform {
@@ -155,7 +155,7 @@ pub fn parse_output(source: &PathBuf, output: &str) -> Option<Vec<build::Marker>
     // Process each line of output
     for line in output.lines() {
 	// Split line into components
-	let split : Vec<&str> = line.split(":").collect();
+	let split : Vec<&str> = line.split("|").collect();
 	if split.len() != 4 {
 	    return None;
 	}
