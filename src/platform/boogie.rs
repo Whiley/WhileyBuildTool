@@ -119,7 +119,7 @@ impl platform::JavaInstance for BoogiePlatform {
 	}
 	// Register the binary artifact
 	let bin = self.target_path();
-	artifacts.push(Artifact::BinaryFile(bin));
+	artifacts.push(Artifact::BinaryFile(bin,false));
 	//
 	artifacts
     }

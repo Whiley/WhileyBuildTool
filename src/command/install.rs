@@ -13,9 +13,9 @@ pub fn install(whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
     // Read build configuration
     let config_file = read_to_string("wy.toml")?;
     // Parse configuration
-    let config = Config::from_str(config_file.as_str())?;    
+    let config = Config::from_str(config_file.as_str())?;
    // Initialise platform registry
-    let registry = init_registry();    
+    let registry = init_registry();
     // Construct build plan
     let build = Build::from_str(&config,whileyhome,&registry)?;
     // Construct zip file
@@ -30,24 +30,26 @@ pub fn install(whileyhome: &Path) -> Result<bool,Box<dyn Error>> {
 	    Artifact::SourceFolder(p) => {
 		info!("Packaging source folder {}",p.display());
 		zip.add_directory(p.to_str().unwrap(), Default::default())?;
-	    }	    
+	    }
 	    Artifact::SourceFile(p) => {
 		info!("Packaging source file {}",p.display());
 		add_file(&p,&mut zip)?;
-	    }	    
+	    }
 	    Artifact::BinaryFolder(p) => {
 		info!("Packaging binary folder {}",p.display());
 		zip.add_directory(p.to_str().unwrap(), Default::default())?;
 	    }
-	    Artifact::BinaryFile(p) => {
-		info!("Packaging binary file {}",p.display());
-		add_file(&p,&mut zip)?;		
+	    Artifact::BinaryFile(p,f) => {
+		if f {
+		    info!("Packaging binary file {}",p.display());
+		    add_file(&p,&mut zip)?;
+		}
 	    }
 	};
     }
     //
     zip.finish()?;
-    info!("Installed {} ...",pkg);    
+    info!("Installed {} ...",pkg);
     Ok(true)
 }
 

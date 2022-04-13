@@ -32,7 +32,7 @@ pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.8",
+    "org.whiley:wyc:0.10.9",
 ];
 
 pub struct WhileyPlatform {
@@ -130,7 +130,7 @@ impl platform::JavaInstance for WhileyPlatform {
 	// Register the binary artifact
 	let bin = self.target_path();
 	artifacts.push(Artifact::BinaryFolder(PathBuf::from(&self.target)));
-	artifacts.push(Artifact::BinaryFile(bin));
+	artifacts.push(Artifact::BinaryFile(bin,true));
 	artifacts.push(Artifact::SourceFolder(PathBuf::from(&self.source)));
 	for i in self.match_includes() {
 	    let mut p = PathBuf::from(&self.source);
@@ -182,7 +182,7 @@ pub fn parse_output(source: &PathBuf, output: &str) -> Option<Vec<build::Marker>
 
 pub struct Descriptor {}
 
-const TMP : &'static str = "dependencies";
+pub const TMP : &'static str = "dependencies";
 
 impl platform::Descriptor for Descriptor {
     fn apply<'a>(&self, config: &'a Config, whileyhome: &Path) -> Result<platform::Instance,config::Error> {
