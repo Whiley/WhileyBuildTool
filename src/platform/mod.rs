@@ -1,4 +1,5 @@
 pub mod whiley;
+pub mod quickcheck;
 pub mod javascript;
 pub mod boogie;
 use std::error;
