@@ -19,7 +19,7 @@ use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::{PatternEncoder};
 use reqwest::Url;
 use crate::maven::{MavenArtifact,MavenResolver};
-use crate::platform::{whiley,javascript,boogie};
+use crate::platform::{whiley,quickcheck,javascript,boogie};
 
 /// Default URL from which to locate Maven dependencies.
 const MAVEN_CENTRAL : &str = "https://repo1.maven.org/maven2/";
@@ -103,6 +103,8 @@ pub fn init_registry<'a>() -> platform::Registry<'a> {
     // Register the Whiley platform.  This takes care of compiling
     // Whiley files into WyIL file.
     r.register("whiley",&whiley::DESCRIPTOR);
+    // Register quickcheck platform which is responsible for checking WyIL files.
+    r.register("check",&quickcheck::DESCRIPTOR);
     // Register the JavaScript platform which is responsible for compiling WyIL files into JavaScript files.
     r.register("js",&javascript::DESCRIPTOR);
     // Register the Boogie platform which is responsible for compiling WyIL files into BPL files.

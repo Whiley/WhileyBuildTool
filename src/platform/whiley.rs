@@ -32,7 +32,7 @@ pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.10",
+    "org.whiley:wyc:0.10.11",
 ];
 
 pub struct WhileyPlatform {
@@ -89,8 +89,6 @@ impl platform::JavaInstance for WhileyPlatform {
         let mut args = Vec::new();
         // Class to invoke
         args.push("wyc.Compiler".to_string());
-	// Brief mode
-	args.push("-b".to_string());
         // Target name
         args.push("-o".to_string());
         args.push(self.name.clone());
