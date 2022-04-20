@@ -9,6 +9,22 @@ use crate::platform;
 use crate::platform::{PluginError,whiley};
 use crate::jvm;
 
+static BUILD_CHECK_MIN : Key = Key::new(&["build","check","min"]);
+static BUILD_CHECK_MAX : Key = Key::new(&["build","check","max"]);
+static BUILD_CHECK_LENGTH : Key = Key::new(&["build","check","length"]);
+static BUILD_CHECK_DEPTH : Key = Key::new(&["build","check","depth"]);
+static BUILD_CHECK_WIDTH : Key = Key::new(&["build","check","width"]);
+static BUILD_CHECK_ROTATION : Key = Key::new(&["build","check","rotation"]);
+static BUILD_CHECK_TIMEOUT : Key = Key::new(&["build","check","timeout"]);
+
+static MIN_DEFAULT : i64 = -3;
+static MAX_DEFAULT : i64 = 3;
+static LENGTH_DEFAULT : i64 = 3;
+static DEPTH_DEFAULT : i64 = 3;
+static WIDTH_DEFAULT : i64 = 2;
+static ROTATION_DEFAULT : i64 = 2;
+static TIMEOUT_DEFAULT : i64 = 1_000_000;
+
 // ========================================================================
 // Platform
 // ========================================================================
@@ -24,7 +40,14 @@ pub struct QuickCheckPlatform {
     name: String,
     source: PathBuf,
     target: String,
-    whileypath: Vec<String>
+    whileypath: Vec<String>,
+    min: i64,
+    max: i64,
+    length: i64,
+    depth: i64,
+    width: i64,
+    rotation: i64,
+    timeout: i64
 }
 
 impl QuickCheckPlatform {
@@ -62,6 +85,14 @@ impl platform::JavaInstance for QuickCheckPlatform {
             }
 	    args.push(whileypath);
         }
+	// Context Configuration
+	args.push(format!("--min={}",self.min));
+	args.push(format!("--max={}",self.max));
+	args.push(format!("--length={}",self.length));
+	args.push(format!("--depth={}",self.depth));
+	args.push(format!("--width={}",self.width));
+	args.push(format!("--rotation={}",self.width));
+	args.push(format!("--timeout={}",self.timeout));
         //
         args.append(&mut self.match_includes());
         //
@@ -93,6 +124,13 @@ impl platform::Descriptor for Descriptor {
         let name = config.get_string(&PACKAGE_NAME)?;
 	let source = config.get_path(&whiley::BUILD_WHILEY_SOURCE).unwrap_or(PathBuf::from(whiley::SOURCE_DEFAULT));
 	let target = config.get_string(&whiley::BUILD_WHILEY_TARGET).unwrap_or(whiley::TARGET_DEFAULT.to_string());
+	let min = config.get_int(&BUILD_CHECK_MIN).unwrap_or(MIN_DEFAULT);
+	let max = config.get_int(&BUILD_CHECK_MAX).unwrap_or(MAX_DEFAULT);
+	let length = config.get_int(&BUILD_CHECK_LENGTH).unwrap_or(LENGTH_DEFAULT);
+	let depth = config.get_int(&BUILD_CHECK_DEPTH).unwrap_or(DEPTH_DEFAULT);
+	let width = config.get_int(&BUILD_CHECK_WIDTH).unwrap_or(ROTATION_DEFAULT);
+	let rotation = config.get_int(&BUILD_CHECK_ROTATION).unwrap_or(ROTATION_DEFAULT);
+	let timeout = config.get_int(&BUILD_CHECK_TIMEOUT).unwrap_or(TIMEOUT_DEFAULT);
         // Construct whileypath?
         let mut whileypath = Vec::new();
 	// FIXME: this should be placed somewhere else, and use a
@@ -110,7 +148,7 @@ impl platform::Descriptor for Descriptor {
 	    whileypath.push(arg);
         }
 	// Construct new instance on the heap
-	let instance = Box::new(QuickCheckPlatform{name,source,target,whileypath});
+	let instance = Box::new(QuickCheckPlatform{name,source,target,whileypath,min,max,length,depth,width,rotation,timeout});
 	// Return generic instance
 	Ok(platform::Instance::Java(instance))
     }
