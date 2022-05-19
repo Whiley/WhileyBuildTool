@@ -31,7 +31,7 @@ static BUILD_BOOGIE_PROVERNAME : Key = Key::new(&["build","boogie","proverName"]
 static MAVEN_DEPS : &'static [&str] = &[
     whiley::MAVEN_DEPS[0], // jmodelgen
     whiley::MAVEN_DEPS[1], // wyc
-    "org.whiley:wyboogie:0.4.3",
+    "org.whiley:wyboogie:0.4.5",
 ];
 
 pub struct BoogiePlatform {
