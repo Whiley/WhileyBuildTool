@@ -22,7 +22,7 @@ static BUILD_JAVASCRIPT_INCLUDES : Key = Key::new(&["build","js","includes"]);
 static MAVEN_DEPS : &'static [&str] = &[
     whiley::MAVEN_DEPS[0], // jmodelgen
     whiley::MAVEN_DEPS[1], // wyc
-    "org.whiley:wyjs:0.10.3",
+    "org.whiley:wyjs:0.10.5",
 ];
 
 pub struct JavaScriptPlatform {
