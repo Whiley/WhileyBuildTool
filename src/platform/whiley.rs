@@ -18,7 +18,7 @@ pub static TARGET_DEFAULT : &'static str = "bin";
 /// Default set of includes for whiley files
 pub static INCLUDES_DEFAULT : &'static str = "**/*.whiley";
 /// Default main method to execute
-pub static MAIN_DEFAULT : &'static str = "main/main";
+pub static MAIN_DEFAULT : &'static str = "main::main";
 
 pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
 pub static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
