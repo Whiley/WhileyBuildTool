@@ -1,7 +1,7 @@
 use clap::{arg, Command};
 use std::error::Error;
 use log::LevelFilter;
-use whiley::command::{build,clean,init,install};
+use whiley::command::{build,clean,init,install,run};
 use whiley::{init_logging,init_whileyhome};
 
 fn main() -> Result<(),Box<dyn Error>> {
@@ -19,6 +19,8 @@ fn main() -> Result<(),Box<dyn Error>> {
 	    Command::new("init").about("Create a new Whiley package in an existing directory"))
 	.subcommand(
 	    Command::new("install").about("Install package in local repository"))
+	.subcommand(
+	    Command::new("run").about("Run package (via interpreter)"))
 	.get_matches();
     // Extract top-level flags
     let verbose = matches.is_present("verbose");
@@ -34,6 +36,7 @@ fn main() -> Result<(),Box<dyn Error>> {
 	Some(("clean", _)) => clean(&whileyhome),
 	Some(("init", _)) => init(&whileyhome),
 	Some(("install", _)) => install(&whileyhome),
+	Some(("run", _)) => run(&whileyhome),
 	_ => unreachable!()
     }?;
     // Determine appropriate exit code

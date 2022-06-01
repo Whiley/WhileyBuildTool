@@ -17,12 +17,15 @@ pub static SOURCE_DEFAULT : &'static str = "src";
 pub static TARGET_DEFAULT : &'static str = "bin";
 /// Default set of includes for whiley files
 pub static INCLUDES_DEFAULT : &'static str = "**/*.whiley";
+/// Default main method to execute
+pub static MAIN_DEFAULT : &'static str = "main/main";
 
 pub static DEPENDENCIES : Key = Key::new(&["dependencies"]);
 pub static BUILD_WHILEY_SOURCE : Key = Key::new(&["build","whiley","source"]);
 pub static BUILD_WHILEY_TARGET : Key = Key::new(&["build","whiley","target"]);
 pub static BUILD_WHILEY_INCLUDES : Key = Key::new(&["build","whiley","includes"]);
 pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
+pub static BUILD_WHILEY_MAIN : Key = Key::new(&["build","whiley","main"]);
 
 // ========================================================================
 // Platform
@@ -32,7 +35,7 @@ pub static BUILD_WHILEY_LIBRARY : Key = Key::new(&["build","whiley","library"]);
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.16",
+    "org.whiley:wyc:0.10.17",
 ];
 
 pub struct WhileyPlatform {
