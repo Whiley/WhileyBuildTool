@@ -35,7 +35,7 @@ pub static BUILD_WHILEY_MAIN : Key = Key::new(&["build","whiley","main"]);
 /// to run the WhileyCompiler.
 pub static MAVEN_DEPS : &'static [&str] = &[
     "org.whiley:jmodelgen:0.4.3",
-    "org.whiley:wyc:0.10.17",
+    "org.whiley:wyc:0.10.18",
 ];
 
 pub struct WhileyPlatform {
